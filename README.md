@@ -59,3 +59,5 @@ const { data, error } = doPolling(fetchStuff, {
 for the complete spec you can refer to the `doPolling.test.ts` file.
 
 Please feel free to open any `issues` and suggestions!
+
+try this [sandbox](https://codesandbox.io/p/devbox/dopolling-playground-4l5ct7?embed=1&file=%2Fsrc%2FApp.tsx)
