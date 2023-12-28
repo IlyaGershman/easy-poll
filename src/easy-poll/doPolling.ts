@@ -1,0 +1,44 @@
+import { createPolling } from './createPolling';
+
+/**
+ * @description
+ * this function allows you to do polling with retries and errors count.
+ * It is useful when you want to keep going with the request until you get the result you want or until you reach the max retries or max errors count.
+ * @example
+ * const { error, data, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetchStuff, {
+ *  // max retries count. If maxPolls is reached, onTooManyRetries will be called
+ *  maxPolls: 10,
+ *  // max errors count. If maxErrors is reached, onTooManyErrors will be called
+ *  maxErrors: 5,
+ *  // interval between retries. Can be a number or function that is called on every poll
+ *  interval: 1000,
+ *  // polling will be stopped if condition is true. If condition is not provided,
+ *  // polling will be stopped after one successful request
+ *  until: data => data.status === 'SUCCESS',
+ *  // onComplete will be called after polling is completed
+ *  onComplete: ({ data, retry, errorsCount }) => {},
+ *  // polling will be stopped if breakIf is true.
+ *  // This is useful when you want to stop polling if you know that you will never get the result you want.
+ *  breakIf: data => data.received !== total,
+ *  // onBreak will be called if breakIf is true
+ *  onBreak: ({ data, retry, errorsCount }) => {},
+ *  // onStart will be called before polling
+ *  onStart: () => {},
+ *  // onNext will be called after each successful poll, except the last one
+ *  onNext: ({ data, retry, errorsCount }) => {},
+ *  // onError will be called after each failed poll
+ *  onError: ({ retry, errorsCount, error }) => {},
+ *  // onTooManyRetries will be called if maxPolls is reached.
+ *  onTooManyRetries: () => {},
+ *  // onTooManyErrors will be called if maxErrors is reached.
+ *  onTooManyErrors: ({ retry, errorsCount, error }) => {},
+ * );
+ * @param fetcher
+ * @param options - maxErrors, maxPolls, interval, condition, onStart, onComplete, onNext, onError, onTooManyRetries, onTooManyErrors
+ * @returns-  {data, error } data is the result of the last successful request. error is the error of the last failed request.
+ * @throws if maxErrors is less than 0
+ * @throws if interval is less than 0
+ */
+export function doPolling<T>(fetcher: () => Promise<T>, options?: Parameters<typeof createPolling<T>>[1]) {
+  return createPolling<T>(fetcher, options).poll();
+}

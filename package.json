@@ -1,0 +1,52 @@
+{
+  "name": "@ilyagershman/easy-poll",
+  "version": "1.0.11",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/easy-poll.cjs.js",
+  "module": "dist/easy-poll.esm.js",
+  "browser": "dist/easy-poll.umd.js",
+  "types": "dist/easy-poll.d.ts",
+  "scripts": {
+    "ci": "npm run build && npm run test",
+    "coverage": "jest --coverage=true",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "jest --watchAll",
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "registry": "https://registry.npmjs.org/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IlyaGershman/easy-poll.git"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.0",
+    "@babel/preset-env": "^7.16.0",
+    "@babel/preset-typescript": "^7.23.3",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/jest": "^29.5.11",
+    "babel-jest": "^27.3.1",
+    "babel-plugin-lodash": "^3.3.4",
+    "esbuild": "^0.19.10",
+    "jest": "^27.3.1",
+    "prettier": "^2.4.1",
+    "rollup": "^4.9.1",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-esbuild": "^6.1.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  },
+  "description": "This is small lightweight library that should allow you to easily create a polling mechanism and have full controll over it.",
+  "bugs": {
+    "url": "https://github.com/IlyaGershman/easy-poll/issues"
+  },
+  "homepage": "https://github.com/IlyaGershman/easy-poll#readme",
+  "directories": {
+    "example": "examples",
+    "test": "tests"
+  },
+  "author": "ilyagershman"
+}
