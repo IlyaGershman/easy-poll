@@ -308,7 +308,10 @@ describe('doPolling', () => {
       onComplete,
       onBreak,
       onNext,
+      onError,
       onFinish,
+      onTooManyErrors,
+      onTooManyAttempts,
       // @ts-ignore
       interval: () => 'bad interval',
     });
