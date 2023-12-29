@@ -2,26 +2,32 @@ import { isTest } from '../utils/envs';
 import { createTimer } from '../utils/timers';
 import { wait } from '../utils/wait';
 
-type SuccessProps<T> = ReturnType<ReturnType<typeof createPolling<T>>['getSuccessState']>;
-type ErrorProps<T> = ReturnType<ReturnType<typeof createPolling<T>>['getErrorState']>;
-type State<T> = ReturnType<ReturnType<typeof createPolling<T>>['getState']>;
+export type SuccessProps<T> = ReturnType<ReturnType<typeof createState<T>>['getSuccessState']>;
+export type ErrorProps<T> = ReturnType<ReturnType<typeof createState<T>>['getErrorState']>;
+export type State<T> = ReturnType<ReturnType<typeof createState<T>>['getState']>;
+export type ReactionsProps<T> = SuccessProps<T> | ErrorProps<T> | State<T>;
 
-export type Options<T> = {
-  maxErrors?: number;
-  maxPolls?: number;
-  interval?: ((props: State<T>) => number) | number;
-  until?: (props: SuccessProps<T>) => boolean;
-  breakIf?: (props: SuccessProps<T>) => boolean;
-  onBreak?: (props: SuccessProps<T>) => void;
+export type Reactions<T> = {
   onStart?: () => void;
   onFinish?: (props: State<T>) => void;
   onComplete?: (props: SuccessProps<T>) => void;
+  onBreak?: (props: SuccessProps<T>) => void;
   onNext?: (props: SuccessProps<T>) => void;
   onTooManyAttempts?: (props: SuccessProps<T>) => void;
   onError?: (props: ErrorProps<T>) => void;
   onTooManyErrors?: (props: ErrorProps<T>) => void;
   onIntervalError?: (props: State<T> & { newInterval: number }) => void;
 };
+
+export type PureOptions<T> = {
+  maxErrors?: number;
+  maxPolls?: number;
+  interval?: ((props: State<T>) => number) | number;
+  until?: (props: SuccessProps<T>) => boolean;
+  breakIf?: (props: SuccessProps<T>) => boolean;
+};
+
+export type Options<T> = PureOptions<T> & Reactions<T>;
 
 export const POLLING_INTERVAL = 2000;
 export const MAX_ERRORS = 5;
@@ -65,6 +71,7 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
   const getIsTooManyErrors = () => getState().errorsCount >= maxErrors;
 
   const poll = async () => {
+    await wait(4);
     onStart();
 
     while (true) {
@@ -119,7 +126,7 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
     return getState();
   };
 
-  return { poll, getSuccessState, getErrorState, getState };
+  return { poll };
 }
 
 export const validateOptions = <T>(o?: Options<T>) => {

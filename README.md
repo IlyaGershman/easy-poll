@@ -61,3 +61,38 @@ for the more complete spec, you can refer to the `doPolling.test.ts` file.
 Please feel free to open any `issues` and suggestions!
 
 try this [sandbox](https://codesandbox.io/p/devbox/dopolling-playground-4l5ct7?embed=1&file=%2Fsrc%2FApp.tsx)
+
+Now you can use subscriber pattern to manage your polling adventures.
+
+```ts
+const { subscribe } = subscribePolling(fetchStuff, {
+  // max retries count. If maxPolls is reached, onTooManyAttempts will be called
+  maxPolls: 10,
+  // max errors count. If maxErrors is reached, onTooManyErrors will be called
+  maxErrors: 5,
+  // interval between retries. Can be a number or function that is called on every poll
+  interval: () => getRandomInt(10000),
+  // polling will be stopped if the condition is true. If the condition is not provided,
+  // polling will be stopped after one successful request
+  until: data => data.status === 'SUCCESS',
+  // polling will be stopped if breakIf is true.
+  // This is useful when you want to stop polling if you know that you will never get the result you want.
+  breakIf: data => data.received !== total,
+});
+
+export default subscribe;
+
+/// somewhere.ts in your code react on the polling events.
+import { subscribe } from './somewhere';
+
+subscribe(props => {
+  if (props.event === EVENTS.ON_COMPLETE) onComplete(props);
+  if (props.event === EVENTS.ON_BREAK) onBreak(props);
+  if (props.event === EVENTS.ON_NEXT) onNext(props);
+  if (props.event === EVENTS.ON_ERROR) onError(props);
+  if (props.event === EVENTS.ON_FINISH) onFinish(props);
+  if (props.event === EVENTS.ON_TOOMANYERRORS) onTooManyErrors(props);
+  if (props.event === EVENTS.ON_TOOMANYATTEMPTS) onTooManyAttempts(props);
+  // ...
+});
+```
