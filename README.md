@@ -1,10 +1,15 @@
 # easy-poll
 
-This is a small lightweight library that should allow you to easily create a polling mechanism and have full controll over it.
+This is a small lightweight and fully typed library that should allow you to easily create a polling mechanism and have full controll over it.
 
+Less text, more code? We got you. [Try this sandbox](https://codesandbox.io/p/devbox/dopolling-playground-4l5ct7?embed=1&file=%2Fsrc%2FApp.tsx)
+
+<h1>doPolling()</h1>
 Just import the `doPolling` in your project and enjoy the results.
 
 ```ts
+import { doPolling } from '@ilyagershman/easy-poll';
+
 const { error, data, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetchStuff, {
   // max retries count. If maxPolls is reached, onTooManyAttempts will be called
   maxPolls: 10,
@@ -60,11 +65,13 @@ for the more complete spec, you can refer to the `doPolling.test.ts` file.
 
 Please feel free to open any `issues` and suggestions!
 
-try this [sandbox](https://codesandbox.io/p/devbox/dopolling-playground-4l5ct7?embed=1&file=%2Fsrc%2FApp.tsx)
+<h2>subscribePolling()</h2>
 
-Now you can use subscriber pattern to manage your polling adventures.
+You can also subscribe to the execution of the polling. It uses the same engine under the hood.
 
 ```ts
+import { subscribePolling } from '@ilyagershman/easy-poll';
+
 const { subscribe } = subscribePolling(fetchStuff, {
   // max retries count. If maxPolls is reached, onTooManyAttempts will be called
   maxPolls: 10,
@@ -96,3 +103,5 @@ subscribe(props => {
   // ...
 });
 ```
+
+for the more complete spec, you can refer to the `subscribePolling.test.ts` file.

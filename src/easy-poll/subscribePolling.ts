@@ -1,16 +1,17 @@
 import { EVENTS } from './consts/events';
 import { createPolling, PureOptions, Reactions } from './createPolling';
 import { createSubscribers } from '../utils/subscribers';
+import { ReactionsProps } from '../easy-poll/createPolling';
 
 export function subscribePolling<T>(fetcher: () => Promise<T>, pureOptions?: PureOptions<T>) {
-  const { notify, subscribe } = createSubscribers<T>();
+  const { notify, subscribe } = createSubscribers<ReactionsProps<T>>();
 
   const subscribtionOptions: Reactions<T> = {
     onStart: () => {
       notify({ event: EVENTS.ON_START });
     },
-    onFinish: () => {
-      notify({ event: EVENTS.ON_FINISH });
+    onFinish: props => {
+      notify({ event: EVENTS.ON_FINISH, props });
     },
     onComplete: props => {
       notify({ event: EVENTS.ON_COMPLETE, props });

@@ -1,15 +1,14 @@
 import { generateUniqueKey } from './generateUniqueKey';
 import { EVENTS } from '../easy-poll/consts/events';
-import { ReactionsProps } from '../easy-poll/createPolling';
 
-type NotifyProps<T> = { event: keyof typeof EVENTS; props?: ReactionsProps<T> };
-type SubscriptionCallback<T> = (props?: NotifyProps<T>) => void;
-type Subscribers<T> = Record<string, SubscriptionCallback<T>>;
+type NotifyProps<P> = { event: keyof typeof EVENTS; props?: P };
+type SubscriptionCallback<P> = (props?: NotifyProps<P>) => void;
+type Subscribers<P> = Record<string, SubscriptionCallback<P>>;
 
-export function createSubscribers<T>() {
-  const subscribers: Subscribers<T> = {};
+export function createSubscribers<P>() {
+  const subscribers: Subscribers<P> = {};
 
-  const subscribe = (callback: (props: NotifyProps<T>) => void, key?: string) => {
+  const subscribe = (callback: (props: NotifyProps<P>) => void, key?: string) => {
     const resultKey = generateUniqueKey(key);
     subscribers[resultKey] = callback;
 
@@ -20,7 +19,7 @@ export function createSubscribers<T>() {
     };
   };
 
-  const notify = (props: NotifyProps<T>) => {
+  const notify = (props: NotifyProps<P>) => {
     Object.values(subscribers).forEach(cb => cb(props));
   };
   return { notify, subscribe };
