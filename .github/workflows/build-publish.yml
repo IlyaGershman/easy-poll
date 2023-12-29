@@ -6,7 +6,6 @@ on:
 
 jobs:
   publish:
-    needs: bump-version
     runs-on: ubuntu-latest
 
     steps:
