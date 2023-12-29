@@ -32,6 +32,17 @@ describe('doPolling', () => {
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 
+  it('should call onFinish', async () => {
+    const onFinish = jest.fn();
+    const fetcher = jest.fn();
+
+    await doPolling(fetcher, {
+      onFinish,
+    });
+
+    expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+
   it('should call onComplete', async () => {
     const onComplete = jest.fn();
     const fetcher = jest.fn().mockReturnValue('data');
@@ -76,17 +87,17 @@ describe('doPolling', () => {
     });
   });
 
-  it('should call onTooManyRetries', async () => {
-    const onTooManyRetries = jest.fn();
+  it('should call onTooManyAttempts', async () => {
+    const onTooManyAttempts = jest.fn();
     const fetcher = jest.fn().mockReturnValue('data');
 
     await doPolling(fetcher, {
-      onTooManyRetries,
+      onTooManyAttempts,
       until: () => false,
     });
 
-    expect(onTooManyRetries).toHaveBeenCalledTimes(1);
-    expect(onTooManyRetries).toHaveBeenCalledWith({
+    expect(onTooManyAttempts).toHaveBeenCalledTimes(1);
+    expect(onTooManyAttempts).toHaveBeenCalledWith({
       attempt: 5,
       errorsCount: 0,
       data: 'data',
@@ -203,7 +214,7 @@ describe('doPolling', () => {
     let counter = 1;
 
     const { data, error, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetcher, {
-      until: d => counter++ === d,
+      until: ({ data }) => counter++ === data,
     });
 
     expect(data).toBe(5);
@@ -289,13 +300,15 @@ describe('doPolling', () => {
     const onNext = jest.fn();
     const onError = jest.fn();
     const onTooManyErrors = jest.fn();
-    const onTooManyRetries = jest.fn();
+    const onTooManyAttempts = jest.fn();
+    const onFinish = jest.fn();
 
     const { attempt, error, data } = await doPolling(fetcher, {
       until: () => false,
       onComplete,
       onBreak,
       onNext,
+      onFinish,
       // @ts-ignore
       interval: () => 'bad interval',
     });
@@ -304,11 +317,12 @@ describe('doPolling', () => {
     expect(error).toBeNull();
     expect(data).toBe('data');
     expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(onFinish).toHaveBeenCalledTimes(1);
     expect(onComplete).toHaveBeenCalledTimes(0);
     expect(onBreak).toHaveBeenCalledTimes(0);
     expect(onNext).toHaveBeenCalledTimes(0);
     expect(onError).toHaveBeenCalledTimes(0);
     expect(onTooManyErrors).toHaveBeenCalledTimes(0);
-    expect(onTooManyRetries).toHaveBeenCalledTimes(0);
+    expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
   });
 });

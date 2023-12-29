@@ -10,13 +10,14 @@ export type Options<T> = {
   maxErrors?: number;
   maxPolls?: number;
   interval?: ((props: State<T>) => number) | number;
-  until?: (data: T) => boolean;
-  breakIf?: (data: T) => boolean;
+  until?: (props: SuccessProps<T>) => boolean;
+  breakIf?: (props: SuccessProps<T>) => boolean;
   onBreak?: (props: SuccessProps<T>) => void;
   onStart?: () => void;
+  onFinish?: (props: State<T>) => void;
   onComplete?: (props: SuccessProps<T>) => void;
   onNext?: (props: SuccessProps<T>) => void;
-  onTooManyRetries?: (props: SuccessProps<T>) => void;
+  onTooManyAttempts?: (props: SuccessProps<T>) => void;
   onError?: (props: ErrorProps<T>) => void;
   onTooManyErrors?: (props: ErrorProps<T>) => void;
   onIntervalError?: (props: State<T> & { newInterval: number }) => void;
@@ -26,8 +27,6 @@ export const POLLING_INTERVAL = 2000;
 export const MAX_ERRORS = 5;
 
 export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>) {
-  const timer = createTimer();
-
   const {
     maxErrors = MAX_ERRORS,
     maxPolls = isTest() ? 5 : Infinity,
@@ -36,83 +35,16 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
     breakIf = () => false,
     onBreak = () => {},
     onStart = () => {},
+    onFinish = () => {},
     onComplete = () => {},
     onNext = () => {},
     onError = () => {},
-    onTooManyRetries = () => {},
+    onTooManyAttempts = () => {},
     onTooManyErrors = () => {},
     onIntervalError = () => {},
   } = validateOptions(options);
 
-  let data: T | null = null;
-  let attempt = 0;
-  let attemptsDuration: number[] = [];
-  let error = null;
-  let errorsCount = 0;
-
-  const getCommonState = () => ({
-    attempt,
-    attemptsDuration,
-    errorsCount,
-    duration: timer.duration(),
-  });
-
-  const getSuccessState = () => ({
-    ...getCommonState(),
-    data,
-  });
-
-  const getErrorState = () => ({
-    ...getCommonState(),
-    error,
-  });
-
-  const getState = () => ({
-    ...getCommonState(),
-    data,
-    error,
-  });
-
-  const onNewAttempt = () => {
-    attempt += 1;
-    attemptsDuration.push(timer.duration());
-  };
-
-  const onNewCatch = (e: any) => {
-    error = e;
-    data = null;
-    errorsCount += 1;
-  };
-
-  const onNewData = (d: T) => {
-    data = d;
-    error = null;
-  };
-
-  const handleBreak = () => {
-    onBreak(getSuccessState());
-  };
-
-  const handleComplete = () => {
-    onComplete(getSuccessState());
-  };
-
-  const handleNext = () => {
-    onNext(getSuccessState());
-  };
-
-  const handleTooManyRetries = () => {
-    onTooManyRetries(getSuccessState());
-  };
-
-  const handleError = () => {
-    onError(getErrorState());
-  };
-
-  const handleTooManyErrors = () => {
-    onError(getErrorState());
-    onTooManyErrors(getErrorState());
-  };
+  var { getSuccessState, getErrorState, getState, onNewData, onNewCatch } = createState<T>();
 
   const getInterval = () => {
     if (typeof interval === 'function') {
@@ -129,29 +61,29 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
     if (typeof interval === 'number') return { isValid: true, newInterval: interval };
   };
 
-  const getIsTooManyErrors = () => errorsCount >= maxErrors;
-  const getIsTooManyAttempts = () => attempt >= maxPolls;
+  const getIsTooManyAttempts = () => getState().attempt >= maxPolls;
+  const getIsTooManyErrors = () => getState().errorsCount >= maxErrors;
 
   const poll = async () => {
     onStart();
+
     while (true) {
-      onNewAttempt();
       try {
         const data = await fetcher();
         onNewData(data);
 
-        if (breakIf(data)) {
-          handleBreak();
+        if (breakIf(getSuccessState())) {
+          onBreak(getSuccessState());
           break;
         }
 
-        if (until(data)) {
-          handleComplete();
+        if (until(getSuccessState())) {
+          onComplete(getSuccessState());
           break;
         }
 
         if (getIsTooManyAttempts()) {
-          handleTooManyRetries();
+          onTooManyAttempts(getSuccessState());
           break;
         }
 
@@ -160,17 +92,18 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
           break;
         }
 
-        handleNext();
+        onNext(getSuccessState());
+
         await wait(newInterval);
       } catch (e) {
         onNewCatch(e);
 
+        onError(getErrorState());
+
         if (getIsTooManyErrors()) {
-          handleTooManyErrors();
+          onTooManyErrors(getErrorState());
           break;
         }
-
-        handleError();
 
         const { isValid, newInterval } = getInterval();
         if (!isValid) {
@@ -180,6 +113,8 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
         await wait(newInterval);
       }
     }
+
+    onFinish(getState());
 
     return getState();
   };
@@ -224,6 +159,10 @@ export const validateOptions = <T>(o?: Options<T>) => {
     throw new Error('onStart must be a function');
   }
 
+  if (o.onFinish !== undefined && typeof o.onFinish !== 'function') {
+    throw new Error('onFinish must be a function');
+  }
+
   if (o.onComplete !== undefined && typeof o.onComplete !== 'function') {
     throw new Error('onComplete must be a function');
   }
@@ -236,8 +175,8 @@ export const validateOptions = <T>(o?: Options<T>) => {
     throw new Error('onError must be a function');
   }
 
-  if (o.onTooManyRetries !== undefined && typeof o.onTooManyRetries !== 'function') {
-    throw new Error('onTooManyRetries must be a function');
+  if (o.onTooManyAttempts !== undefined && typeof o.onTooManyAttempts !== 'function') {
+    throw new Error('onTooManyAttempts must be a function');
   }
 
   if (o.onTooManyErrors !== undefined && typeof o.onTooManyErrors !== 'function') {
@@ -250,3 +189,56 @@ export const validateOptions = <T>(o?: Options<T>) => {
 
   return o;
 };
+
+function createState<T>() {
+  const timer = createTimer();
+
+  let data: T | null = null;
+  let attempt = 0;
+  let attemptsDuration: number[] = [];
+  let error = null;
+  let errorsCount = 0;
+
+  const getCommonState = () => ({
+    attempt,
+    attemptsDuration,
+    errorsCount,
+    duration: timer.duration(),
+  });
+
+  const getSuccessState = () => ({
+    ...getCommonState(),
+    data,
+  });
+
+  const getErrorState = () => ({
+    ...getCommonState(),
+    error,
+  });
+
+  const getState = () => ({
+    ...getCommonState(),
+    data,
+    error,
+  });
+
+  const onNewAttempt = () => {
+    attempt += 1;
+    attemptsDuration.push(timer.duration());
+  };
+
+  const onNewData = (d: T) => {
+    onNewAttempt();
+    data = d;
+    error = null;
+  };
+
+  const onNewCatch = (e: any) => {
+    onNewAttempt();
+    error = e;
+    data = null;
+    errorsCount += 1;
+  };
+
+  return { errorsCount, attempt, getSuccessState, getErrorState, getState, onNewData, onNewCatch };
+}

@@ -6,7 +6,7 @@ Just import the `doPolling` in your project and enjoy the results.
 
 ```ts
 const { error, data, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetchStuff, {
-  // max retries count. If maxPolls is reached, onTooManyRetries will be called
+  // max retries count. If maxPolls is reached, onTooManyAttempts will be called
   maxPolls: 10,
   // max errors count. If maxErrors is reached, onTooManyErrors will be called
   maxErrors: 5,
@@ -24,12 +24,12 @@ const { error, data, attempt, attemptsDuration, duration, errorsCount } = await 
   onBreak: ({ data, retry, errorsCount }) => {},
   // onStart will be called before polling
   onStart: () => {},
-  // onNext will be called after each successful poll, except the last one
+  // onNext will be called after each successful poll, before waiting for the interval
   onNext: ({ data, retry, errorsCount }) => {},
   // onError will be called after each failed poll
   onError: ({ retry, errorsCount, error }) => {},
-  // onTooManyRetries will be called if maxPolls is reached.
-  onTooManyRetries: () => {},
+  // onTooManyAttempts will be called if maxPolls is reached.
+  onTooManyAttempts: () => {},
   // onTooManyErrors will be called if maxErrors is reached.
   onTooManyErrors: ({ retry, errorsCount, error }) => {},
 });
