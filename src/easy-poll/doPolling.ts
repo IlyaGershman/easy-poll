@@ -36,7 +36,7 @@ import { Options, createPolling } from './createPolling';
  *  onTooManyErrors: ({ retry, errorsCount, error }) => {},
  * );
  * @param fetcher
- * @param options - maxErrors, maxPolls, interval, condition, onStart, onComplete, onNext, onError, onTooManyAttempts, onTooManyErrors
+ * @param options - maxErrors, maxPolls, interval, until, onStart, onComplete, onNext, onError, onTooManyAttempts, onTooManyErrors
  * @returns-  {data, error } data is the result of the last successful request. error is the error of the last failed request.
  * @throws if maxErrors is less than 0
  * @throws if interval is less than 0
