@@ -87,8 +87,6 @@ const { subscribe } = subscribePolling(fetchStuff, {
   breakIf: data => data.received !== total,
 });
 
-export default subscribe;
-
 /// somewhere.ts in your code react on the polling events.
 import { subscribe } from './somewhere';
 
