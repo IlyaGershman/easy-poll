@@ -1,4 +1,4 @@
-import { createPolling } from './createPolling';
+import { Options, createPolling } from './createPolling';
 
 /**
  * @description
@@ -41,6 +41,6 @@ import { createPolling } from './createPolling';
  * @throws if maxErrors is less than 0
  * @throws if interval is less than 0
  */
-export function doPolling<T>(fetcher: () => Promise<T>, options?: Parameters<typeof createPolling<T>>[1]) {
+export function doPolling<T>(fetcher: () => Promise<T>, options?: Options<T>) {
   return createPolling<T>(fetcher, options).poll();
 }
