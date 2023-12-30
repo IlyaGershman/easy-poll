@@ -63,6 +63,34 @@ describe('subscribePolling', () => {
     expect(onFinish).toHaveBeenCalledTimes(1);
   });
 
+  it('can support many subscribers', async () => {
+    const onFinish1 = jest.fn();
+    const onFinish2 = jest.fn();
+    const onFinish3 = jest.fn();
+    const onFinish4 = jest.fn();
+    const fetcher = jest.fn();
+
+    const { subscribe, poll } = subscribePolling(fetcher);
+    subscribe(props => {
+      if (props.event === EVENTS.ON_FINISH) onFinish1(props);
+    });
+    subscribe(props => {
+      if (props.event === EVENTS.ON_FINISH) onFinish2(props);
+    });
+    subscribe(props => {
+      if (props.event === EVENTS.ON_FINISH) onFinish3(props);
+    });
+    subscribe(props => {
+      if (props.event === EVENTS.ON_FINISH) onFinish4(props);
+    });
+    await poll;
+
+    expect(onFinish1).toHaveBeenCalledTimes(1);
+    expect(onFinish2).toHaveBeenCalledTimes(1);
+    expect(onFinish3).toHaveBeenCalledTimes(1);
+    expect(onFinish4).toHaveBeenCalledTimes(1);
+  });
+
   it('should call onComplete', async () => {
     const onComplete = jest.fn();
     const fetcher = jest.fn().mockReturnValue('data');

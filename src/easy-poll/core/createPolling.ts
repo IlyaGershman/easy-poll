@@ -3,9 +3,9 @@ import { wait } from '../../utils/wait';
 import { createState } from './state';
 import { validateOptions } from './validateOptions';
 
-export type SuccessProps<T> = ReturnType<ReturnType<typeof createState<T>>['getSuccessState']>;
-export type ErrorProps<T> = ReturnType<ReturnType<typeof createState<T>>['getErrorState']>;
-export type State<T> = ReturnType<ReturnType<typeof createState<T>>['getState']>;
+export type SuccessProps<T> = ReturnType<ReturnType<typeof createState<T>>['get']['success']>;
+export type ErrorProps<T> = ReturnType<ReturnType<typeof createState<T>>['get']['catch']>;
+export type State<T> = ReturnType<ReturnType<typeof createState<T>>['get']['all']>;
 export type ReactionsProps<T> = SuccessProps<T> | ErrorProps<T> | State<T>;
 
 export type Reactions<T> = {
