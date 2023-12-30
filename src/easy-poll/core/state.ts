@@ -9,50 +9,40 @@ export function createState<T>() {
   let error = null;
   let errorsCount = 0;
 
-  const getCommonState = () => ({
-    attempt,
-    attemptsDuration,
-    errorsCount,
-    duration: timer.duration(),
-  });
+  const get = {
+    data: () => data,
+    error: () => error,
+    attempt: () => attempt,
+    errorsCount: () => errorsCount,
+    duration: () => timer.duration(),
+    attemptsDuration: () => attemptsDuration,
 
-  const getSuccessState = () => ({
-    ...getCommonState(),
-    data,
-  });
-
-  const getErrorState = () => ({
-    ...getCommonState(),
-    error,
-  });
-
-  const getState = () => ({
-    ...getCommonState(),
-    data,
-    error,
-  });
-
-  const onNewAttempt = () => {
-    attempt += 1;
-    attemptsDuration.push(timer.duration());
+    common: () => ({ attempt, attemptsDuration, errorsCount, duration: timer.duration() }),
+    success: () => ({ ...get.common(), data }),
+    catch: () => ({ ...get.common(), error }),
+    all: () => ({ ...get.common(), data, error }),
   };
 
-  const onNewData = (d: T) => {
-    onNewAttempt();
-    data = d;
-    error = null;
+  const on = {
+    newAttempt: () => {
+      attempt += 1;
+      attemptsDuration.push(timer.duration());
+    },
+    newData: (d: T) => {
+      on.newAttempt();
+      data = d;
+      error = null;
+    },
+    newCatch: (e: any) => {
+      on.newAttempt();
+      error = e;
+      data = null;
+      errorsCount += 1;
+    },
+    intervalCatch: (e: any) => {
+      error = e;
+    },
   };
 
-  const onNewCatch = (e: any) => {
-    onNewAttempt();
-    error = e;
-    data = null;
-    errorsCount += 1;
-  };
-
-  const onIntervalCatch = (e: any) => {
-    error = e;
-  };
-
-  return { errorsCount, attempt, getSuccessState, getErrorState, getState, onNewData, onNewCatch, onIntervalCatch };
+  return { get, on };
 }

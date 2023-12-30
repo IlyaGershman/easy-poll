@@ -51,29 +51,28 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
     onIntervalError = () => {},
   } = validateOptions(options);
 
-  var { getSuccessState, getErrorState, getState, onNewData, onNewCatch, onIntervalCatch } = createState<T>();
+  const state = createState<T>();
 
   const getInterval = () => {
     if (typeof interval === 'number') return { isValid: true, newInterval: interval };
 
     const badInterval = { isValid: false, newInterval: 0 };
     try {
-      const newInterval = interval(getState());
+      const newInterval = interval(state.get.all());
 
       if (typeof newInterval !== 'number' || newInterval < 0) {
-        onIntervalCatch(new Error('interval must be greater than or equal to 0'));
-        return badInterval;
+        throw new Error('interval must be greater than or equal to 0');
       }
 
       return { isValid: true, newInterval };
     } catch (error) {
-      onIntervalCatch(error);
+      state.on.intervalCatch(error);
       return badInterval;
     }
   };
 
-  const getIsTooManyAttempts = () => getState().attempt >= maxPolls;
-  const getIsTooManyErrors = () => getState().errorsCount >= maxErrors;
+  const getIsTooManyAttempts = () => state.get.attempt() >= maxPolls;
+  const getIsTooManyErrors = () => state.get.errorsCount() >= maxErrors;
 
   const poll = async () => {
     await wait(4);
@@ -82,45 +81,45 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
     while (true) {
       try {
         const data = await fetcher();
-        onNewData(data);
+        state.on.newData(data);
 
-        if (breakIf(getSuccessState())) {
-          onBreak(getSuccessState());
+        if (breakIf(state.get.success())) {
+          onBreak(state.get.success());
           break;
         }
 
-        if (until(getSuccessState())) {
-          onComplete(getSuccessState());
+        if (until(state.get.success())) {
+          onComplete(state.get.success());
           break;
         }
 
         if (getIsTooManyAttempts()) {
-          onTooManyAttempts(getSuccessState());
+          onTooManyAttempts(state.get.success());
           break;
         }
 
         const { isValid, newInterval } = getInterval();
         if (!isValid) {
-          onIntervalError(getState());
+          onIntervalError(state.get.all());
           break;
         }
 
-        onNext(getSuccessState());
+        onNext(state.get.success());
 
         await wait(newInterval);
       } catch (e) {
-        onNewCatch(e);
+        state.on.newCatch(e);
 
-        onError(getErrorState());
+        onError(state.get.catch());
 
         if (getIsTooManyErrors()) {
-          onTooManyErrors(getErrorState());
+          onTooManyErrors(state.get.catch());
           break;
         }
 
         const { isValid, newInterval } = getInterval();
         if (!isValid) {
-          onIntervalError(getState());
+          onIntervalError(state.get.all());
           break;
         }
 
@@ -128,9 +127,9 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
       }
     }
 
-    onFinish(getState());
+    onFinish(state.get.all());
 
-    return getState();
+    return state.get.all();
   };
 
   return { poll };
