@@ -45,7 +45,7 @@ import { ReactionsProps } from './core/createPolling';
  * @throws if interval is less than 0
  */
 export function subscribePolling<T>(fetcher: () => Promise<T>, pureOptions?: PureOptions<T>) {
-  const { notify, subscribe } = createSubscribers<ReactionsProps<T>>();
+  const { notify, subscribe } = createSubscribers<{ event: keyof typeof EVENTS; props?: ReactionsProps<T> }>();
 
   const subscribtionOptions: Reactions<T> = {
     onStart: () => {

@@ -13,6 +13,13 @@ describe('doPolling', () => {
     expect(() => doPolling(fetcher, { interval: -1 })).toThrow('interval must be greater than or equal to 0');
   });
 
+  it('should throw an error when interval not a number or a function', async () => {
+    const fetcher = jest.fn();
+
+    // @ts-ignore
+    expect(() => doPolling(fetcher, { interval: 'not a number' })).toThrow('interval must be a function or a number');
+  });
+
   it('should call fetcher', async () => {
     const fetcher = jest.fn();
 

@@ -54,26 +54,22 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
   var { getSuccessState, getErrorState, getState, onNewData, onNewCatch, onIntervalCatch } = createState<T>();
 
   const getInterval = () => {
-    if (typeof interval === 'function') {
-      const badInterval = { isValid: false, newInterval: 0 };
-      try {
-        const newInterval = interval(getState());
-        if (typeof newInterval !== 'number' || newInterval < 0) {
-          const error = new Error('interval must be greater than or equal to 0');
-          onIntervalCatch(error);
+    if (typeof interval === 'number') return { isValid: true, newInterval: interval };
 
-          return badInterval;
-        }
+    const badInterval = { isValid: false, newInterval: 0 };
+    try {
+      const newInterval = interval(getState());
 
-        return { isValid: true, newInterval };
-      } catch (error) {
-        onIntervalCatch(error);
-
+      if (typeof newInterval !== 'number' || newInterval < 0) {
+        onIntervalCatch(new Error('interval must be greater than or equal to 0'));
         return badInterval;
       }
-    }
 
-    if (typeof interval === 'number') return { isValid: true, newInterval: interval };
+      return { isValid: true, newInterval };
+    } catch (error) {
+      onIntervalCatch(error);
+      return badInterval;
+    }
   };
 
   const getIsTooManyAttempts = () => getState().attempt >= maxPolls;
