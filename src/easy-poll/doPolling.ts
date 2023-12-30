@@ -1,4 +1,5 @@
-import { Options, createPolling } from './createPolling';
+import { Options } from './core/createPolling';
+import { createPolling } from './core/createPolling';
 
 /**
  * @description

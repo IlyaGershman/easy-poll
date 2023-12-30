@@ -1,7 +1,8 @@
 import { EVENTS } from './consts/events';
-import { createPolling, PureOptions, Reactions } from './createPolling';
+import { PureOptions, Reactions } from './core/createPolling';
+import { createPolling } from './core/createPolling';
 import { createSubscribers } from '../utils/subscribers';
-import { ReactionsProps } from '../easy-poll/createPolling';
+import { ReactionsProps } from './core/createPolling';
 
 /**
  * @description

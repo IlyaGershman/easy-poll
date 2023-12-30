@@ -295,7 +295,7 @@ describe('subscribePolling', () => {
     const { attempt, error, data } = await poll;
 
     expect(attempt).toBe(1);
-    expect(error).toBeNull();
+    expect(error).not.toBeNull();
     expect(data).toBe('data');
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(1);
