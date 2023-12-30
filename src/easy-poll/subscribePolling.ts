@@ -8,20 +8,35 @@ import { ReactionsProps } from '../easy-poll/createPolling';
  * this function allows you to subscribe to the polling with retries and errors count.
  * It is useful when you want to keep going with the request until you get the result you want or until you reach the max retries or max errors count.
  * @example
- * const { error, data, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetchStuff, {
- *  // max retries count. If maxPolls is reached, onTooManyAttempts will be called
- *  maxPolls: 10,
- *  // max errors count. If maxErrors is reached, onTooManyErrors will be called
- *  maxErrors: 5,
- *  // interval between retries. Can be a number or function that is called on every poll
- *  interval: 1000,
- *  // polling will be stopped if condition is true. If condition is not provided,
- *  // polling will be stopped after one successful request
- *  until: data => data.status === 'SUCCESS',
- *  // polling will be stopped if breakIf is true.
- *  // This is useful when you want to stop polling if you know that you will never get the result you want.
- *  breakIf: data => data.received !== total,
- * );
+ * const { subscribe } = subscribePolling(fetchStuff, {
+ *   // max retries count. If maxPolls is reached, onTooManyAttempts will be called
+ *   maxPolls: 10,
+ *   // max errors count. If maxErrors is reached, onTooManyErrors will be called
+ *   maxErrors: 5,
+ *   // interval between retries. Can be a number or function that is called on every poll
+ *   interval: () => getRandomInt(10000),
+ *   // polling will be stopped if the condition is true. If the condition is not provided,
+ *   // polling will be stopped after one successful request
+ *   until: data => data.status === 'SUCCESS',
+ *   // polling will be stopped if breakIf is true.
+ *   // This is useful when you want to stop polling if you know that you will never get the result you want.
+ *   breakIf: data => data.received !== total,
+ * });
+ *
+ * /// somewhere.ts in your code react on the polling events.
+ * import { EVENTS } from '@ilyagershman/easy-poll';
+ * import { subscribe } from './somewhere';
+ *
+ * subscribe(props => {
+ *   if (props.event === EVENTS.ON_COMPLETE) onComplete(props);
+ *   if (props.event === EVENTS.ON_BREAK) onBreak(props);
+ *   if (props.event === EVENTS.ON_NEXT) onNext(props);
+ *   if (props.event === EVENTS.ON_ERROR) onError(props);
+ *   if (props.event === EVENTS.ON_FINISH) onFinish(props);
+ *   if (props.event === EVENTS.ON_TOOMANYERRORS) onTooManyErrors(props);
+ *   if (props.event === EVENTS.ON_TOOMANYATTEMPTS) onTooManyAttempts(props);
+ *   // ...
+ * });
  * @param fetcher
  * @param options - maxErrors, maxPolls, interval, until, breakIf
  * @returns-  {subscribe }
