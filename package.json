@@ -48,5 +48,15 @@
     "example": "examples",
     "test": "tests"
   },
+  "keywords": [
+    "long-polling",
+    "polling",
+    "polling-mechanism",
+    "polling-library",
+    "polling-utility",
+    "async",
+    "async-await",
+    "promise"
+  ],
   "author": "ilyagershman"
 }
