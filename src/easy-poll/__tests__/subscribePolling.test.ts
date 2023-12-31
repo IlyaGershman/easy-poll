@@ -2,18 +2,6 @@ import { EVENTS } from '../consts/events';
 import { subscribePolling } from '../subscribePolling';
 
 describe('subscribePolling', () => {
-  it('should throw an error when maxErrors is less than 0', async () => {
-    const fetcher = jest.fn();
-
-    expect(() => subscribePolling(fetcher, { maxErrors: -1 })).toThrow('maxErrors must be greater than or equal to 0');
-  });
-
-  it('should throw an error when interval is less than 0', async () => {
-    const fetcher = jest.fn();
-
-    expect(() => subscribePolling(fetcher, { interval: -1 })).toThrow('interval must be greater than or equal to 0');
-  });
-
   it('should call fetcher', async () => {
     const fetcher = jest.fn();
 
@@ -333,5 +321,52 @@ describe('subscribePolling', () => {
     expect(onError).toHaveBeenCalledTimes(0);
     expect(onTooManyErrors).toHaveBeenCalledTimes(0);
     expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
+  });
+
+  describe('options validation', () => {
+    it('should throw an error when maxErrors is less than 0', async () => {
+      const fetcher = jest.fn();
+
+      expect(() => subscribePolling(fetcher, { maxErrors: -1 })).toThrow(
+        'maxErrors must be greater than or equal to 0'
+      );
+    });
+
+    it('should throw an error when interval is less than 0', async () => {
+      const fetcher = jest.fn();
+
+      expect(() => subscribePolling(fetcher, { interval: -1 })).toThrow('interval must be greater than or equal to 0');
+    });
+
+    it('should throw an error when interval not a number or a function', async () => {
+      const fetcher = jest.fn();
+
+      // @ts-ignore
+      expect(() => subscribePolling(fetcher, { interval: 'not a number' })).toThrow(
+        'interval must be a function or a number'
+      );
+    });
+
+    it('should throw an error when maxPolls is less than 0', async () => {
+      const fetcher = jest.fn();
+
+      expect(() => subscribePolling(fetcher, { maxPolls: -1 })).toThrow('maxPolls must be greater than or equal to 0');
+    });
+
+    it('should throw an error when until is not a function', async () => {
+      const fetcher = jest.fn();
+      const until = 'not a function';
+
+      // @ts-ignore
+      expect(() => subscribePolling(fetcher, { until })).toThrow('until must be a function');
+    });
+
+    it('should throw an error when breakIf is not a function', async () => {
+      const fetcher = jest.fn();
+      const breakIf = 'not a function';
+
+      // @ts-ignore
+      expect(() => subscribePolling(fetcher, { breakIf })).toThrow('breakIf must be a function');
+    });
   });
 });
