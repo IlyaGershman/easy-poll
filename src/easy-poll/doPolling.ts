@@ -35,6 +35,8 @@ import { createPolling } from './core/createPolling';
  *  onTooManyAttempts: () => {},
  *  // onTooManyErrors will be called if maxErrors is reached.
  *  onTooManyErrors: ({ retry, errorsCount, error }) => {},
+ *  // onIntervalError will be called if the interval function throws an error
+ *  onIntervalError({ data, error, attempt ,attemptsDuration, errorsCount, duration }) => {}
  * );
  * @param fetcher
  * @param options - maxErrors, maxPolls, interval, until, onStart, onComplete, onNext, onError, onTooManyAttempts, onTooManyErrors

@@ -20,27 +20,31 @@ const { error, data, attempt, attemptsDuration, duration, errorsCount } = await 
   maxErrors: 5,
   // interval between retries. Can be a number or function that is called on every poll
   interval: 1000,
-  // polling will be stopped if the condition is true. If the condition is not provided,
+  // polling will be stopped if condition is true. If condition is not provided,
   // polling will be stopped after one successful request
   until: data => data.status === 'SUCCESS',
   // onComplete will be called after polling is completed
-  onComplete: ({ data, retry, errorsCount }) => {},
+  onComplete: ({ data, attempt, errorsCount }) => {},
   // polling will be stopped if breakIf is true.
   // This is useful when you want to stop polling if you know that you will never get the result you want.
   breakIf: data => data.received !== total,
   // onBreak will be called if breakIf is true
-  onBreak: ({ data, retry, errorsCount }) => {},
+  onBreak: ({ data, attempt, errorsCount }) => {},
   // onStart will be called before polling
   onStart: () => {},
-  // onNext will be called after each successful poll, before waiting for the interval
-  onNext: ({ data, retry, errorsCount }) => {},
+  // onFinish will be called after polling is finished with whichever result
+  onFinish: ({ data, attempt, errorsCount }) => {},
+  // onNext will be called after each successful poll, except the last one
+  onNext: ({ data, attempt, errorsCount }) => {},
   // onError will be called after each failed poll
   onError: ({ retry, errorsCount, error }) => {},
   // onTooManyAttempts will be called if maxPolls is reached.
   onTooManyAttempts: () => {},
   // onTooManyErrors will be called if maxErrors is reached.
   onTooManyErrors: ({ retry, errorsCount, error }) => {},
-});
+  // onIntervalError will be called if the interval function throws an error
+  onIntervalError({ data, error, attempt ,attemptsDuration, errorsCount, duration }) => {}
+);
 ```
 
 all the options props are optional, you can simply use it like this:
@@ -64,11 +68,12 @@ await doPolling(fetchStuff, {
 });
 ```
 
-for the more complete spec, you can refer to the `doPolling.test.ts` file.
+for more complete spec, you can refer to the `doPolling.test.ts` file.
 
 ### <h2>subscribePolling()</h2>
 
 You can also subscribe to the execution of the polling. It uses the same engine under the hood.
+Every time polling event is triggered, the `subscribe` function will be called.
 
 ```ts
 import { subscribePolling } from '@ilyagershman/easy-poll';
@@ -104,7 +109,7 @@ subscribe(props => {
 });
 ```
 
-for the more complete spec, you can refer to the `subscribePolling.test.ts` file.
+for the complete spec, you can refer to the `subscribePolling.test.ts` file.
 
 ### Issues
 
