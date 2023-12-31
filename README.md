@@ -1,10 +1,13 @@
 # easy-poll
 
+<img src="./badges/badge-functions.svg" /><img src="./badges/badge-branches.svg" /><img src="./badges/badge-lines.svg" /><img src="./badges/badge-statements.svg" />
+
 This is a small lightweight and fully typed library that should allow you to easily create a polling mechanism and have full controll over it.
 
 Less text, more code? We got you. [Try this sandbox](https://codesandbox.io/p/devbox/dopolling-playground-4l5ct7?embed=1&file=%2Fsrc%2FApp.tsx)
 
-<h1>doPolling()</h1>
+### <h1>doPolling()</h1>
+
 Just import the `doPolling` in your project and enjoy the results.
 
 ```ts
@@ -63,9 +66,7 @@ await doPolling(fetchStuff, {
 
 for the more complete spec, you can refer to the `doPolling.test.ts` file.
 
-Please feel free to open any `issues` and suggestions!
-
-<h2>subscribePolling()</h2>
+### <h2>subscribePolling()</h2>
 
 You can also subscribe to the execution of the polling. It uses the same engine under the hood.
 
@@ -103,3 +104,11 @@ subscribe(props => {
 ```
 
 for the more complete spec, you can refer to the `subscribePolling.test.ts` file.
+
+### Issues
+
+Please feel free to open any `issues` and suggestions!
+
+## Licence
+
+MIT

@@ -10,15 +10,25 @@
   "scripts": {
     "ci": "npm run build && npm run test",
     "coverage": "jest --coverage=true",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "jest",
+    "test:coverage": "npm test -- --coverage",
+    "test:badges": "npm run test:coverage  && jest-coverage-badges --output ./badges",
     "test:watch": "jest --watchAll",
     "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "dev": "rollup -c -w",
+    "prepare": "husky install"
   },
   "registry": "https://registry.npmjs.org/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/IlyaGershman/easy-poll.git"
+  },
+  "jest": {
+    "coverageReporters": [
+      "json-summary",
+      "text",
+      "lcov"
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
@@ -31,6 +41,7 @@
     "babel-jest": "^27.3.1",
     "babel-plugin-lodash": "^3.3.4",
     "esbuild": "^0.19.10",
+    "husky": "^8.0.3",
     "jest": "^27.3.1",
     "prettier": "^2.4.1",
     "rollup": "^4.9.1",
@@ -58,5 +69,8 @@
     "async-await",
     "promise"
   ],
-  "author": "ilyagershman"
+  "author": "ilyagershman",
+  "dependencies": {
+    "jest-coverage-badges": "^1.1.2"
+  }
 }
