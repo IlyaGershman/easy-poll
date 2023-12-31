@@ -1,10 +1,9 @@
-import { generateUniqueKey } from './generateUniqueKey';
-
 export function createSubscribers<P>() {
   const subscribers: Record<string, (props?: P) => void> = {};
 
+  let counter = 0;
   const subscribe = (callback: (props: P) => void, key?: string) => {
-    const resultKey = generateUniqueKey(key);
+    const resultKey = key || counter++;
     subscribers[resultKey] = callback;
 
     return {
