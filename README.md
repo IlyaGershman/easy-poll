@@ -90,6 +90,7 @@ const { subscribe } = subscribePolling(fetchStuff, {
 
 /// somewhere.ts in your code react on the polling events.
 import { subscribe } from './somewhere';
+import { EVENTS } from '@ilyagershman/easy-poll';
 
 subscribe(props => {
   if (props.event === EVENTS.ON_COMPLETE) onComplete(props);
