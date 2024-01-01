@@ -1,4 +1,5 @@
 node_modules
+examples/react/node_modules
 coverage
 yarn-error.log
 dist
