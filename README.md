@@ -73,12 +73,16 @@ for more complete spec, you can refer to the `doPolling.test.ts` file.
 ### <h2>subscribePolling()</h2>
 
 You can also subscribe to the execution of the polling. It uses the same engine under the hood.
-Every time polling event is triggered, the `subscribe` function will be called.
+When called. the function returns an object with two functions: `subscribe` and `init`.
+
+`init` is a function that starts the polling. It returns a promise with the result of the polling (same as `doPolling`).
+Every time polling event is triggered, the `subscribe` function will be called with the event props that are the same as `doPolling` callbacks.
 
 ```ts
+// someService.ts
 import { subscribePolling } from '@ilyagershman/easy-poll';
 
-const { subscribe } = subscribePolling(fetchStuff, {
+export const { subscribe, init } = subscribePolling(fetchStuff, {
   // max retries count. If maxPolls is reached, onTooManyAttempts will be called
   maxPolls: 10,
   // max errors count. If maxErrors is reached, onTooManyErrors will be called
@@ -94,8 +98,12 @@ const { subscribe } = subscribePolling(fetchStuff, {
 });
 
 /// somewhere.ts in your code react on the polling events.
-import { subscribe } from './somewhere';
+import { subscribe, init } from './somewhere';
 import { EVENTS } from '@ilyagershman/easy-poll';
+
+init().then({ data, error } => {
+  // same as doPolling
+}));
 
 subscribe(props => {
   if (props.event === EVENTS.ON_COMPLETE) onComplete(props);
@@ -109,11 +117,13 @@ subscribe(props => {
 });
 ```
 
+You can check `examples` folder for a working example. Check out readme there the start the example project.
+
 for the complete spec, you can refer to the `subscribePolling.test.ts` file.
 
 ### Issues
 
-Please feel free to open any `issues` and suggestions!
+Please feel free to open any [issues](https://github.com/IlyaGershman/easy-poll/issues) and suggestions!
 
 ## Licence
 

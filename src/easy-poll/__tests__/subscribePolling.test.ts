@@ -5,8 +5,8 @@ describe('subscribePolling', () => {
   it('should call fetcher', async () => {
     const fetcher = jest.fn();
 
-    const { poll } = subscribePolling(fetcher);
-    await poll;
+    const { init } = subscribePolling(fetcher);
+    await init();
 
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
@@ -15,11 +15,11 @@ describe('subscribePolling', () => {
     const onStart = jest.fn();
     const fetcher = jest.fn();
 
-    const { subscribe, poll } = subscribePolling(fetcher);
+    const { subscribe, init } = subscribePolling(fetcher);
     subscribe(props => {
       if (props.event === EVENTS.ON_START) onStart(props);
     });
-    await poll;
+    await init();
 
     expect(onStart).toHaveBeenCalledTimes(1);
   });
@@ -28,12 +28,12 @@ describe('subscribePolling', () => {
     const onStart = jest.fn();
     const fetcher = jest.fn();
 
-    const { subscribe, poll } = subscribePolling(fetcher);
+    const { subscribe, init } = subscribePolling(fetcher);
     const { unsubscribe } = subscribe(props => {
       if (props.event === EVENTS.ON_START) onStart(props);
     });
     unsubscribe();
-    await poll;
+    await init();
 
     expect(onStart).toHaveBeenCalledTimes(0);
   });
@@ -42,11 +42,11 @@ describe('subscribePolling', () => {
     const onFinish = jest.fn();
     const fetcher = jest.fn();
 
-    const { subscribe, poll } = subscribePolling(fetcher);
+    const { subscribe, init } = subscribePolling(fetcher);
     subscribe(props => {
       if (props.event === EVENTS.ON_FINISH) onFinish(props);
     });
-    await poll;
+    await init();
 
     expect(onFinish).toHaveBeenCalledTimes(1);
   });
@@ -58,7 +58,7 @@ describe('subscribePolling', () => {
     const onFinish4 = jest.fn();
     const fetcher = jest.fn();
 
-    const { subscribe, poll } = subscribePolling(fetcher);
+    const { subscribe, init } = subscribePolling(fetcher);
     subscribe(props => {
       if (props.event === EVENTS.ON_FINISH) onFinish1(props);
     });
@@ -71,7 +71,7 @@ describe('subscribePolling', () => {
     subscribe(props => {
       if (props.event === EVENTS.ON_FINISH) onFinish4(props);
     });
-    await poll;
+    await init();
 
     expect(onFinish1).toHaveBeenCalledTimes(1);
     expect(onFinish2).toHaveBeenCalledTimes(1);
@@ -83,11 +83,11 @@ describe('subscribePolling', () => {
     const onComplete = jest.fn();
     const fetcher = jest.fn().mockReturnValue('data');
 
-    const { subscribe, poll } = subscribePolling(fetcher);
+    const { subscribe, init } = subscribePolling(fetcher);
     subscribe(props => {
       if (props.event === EVENTS.ON_COMPLETE) onComplete(props);
     });
-    await poll;
+    await init();
 
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(onComplete).toHaveBeenCalledWith({
@@ -106,14 +106,14 @@ describe('subscribePolling', () => {
     const onNext = jest.fn();
     const fetcher = jest.fn().mockReturnValue('data');
 
-    const { subscribe, poll } = subscribePolling(fetcher, {
+    const { subscribe, init } = subscribePolling(fetcher, {
       until: () => false,
     });
 
     subscribe(props => {
       if (props.event === EVENTS.ON_NEXT) onNext(props);
     });
-    await poll;
+    await init();
 
     expect(onNext).toHaveBeenCalledTimes(4);
     expect(onNext).toHaveBeenLastCalledWith({
@@ -138,14 +138,14 @@ describe('subscribePolling', () => {
     const onTooManyAttempts = jest.fn();
     const fetcher = jest.fn().mockReturnValue('data');
 
-    const { subscribe, poll } = subscribePolling(fetcher, {
+    const { subscribe, init } = subscribePolling(fetcher, {
       until: () => false,
     });
 
     subscribe(props => {
       if (props.event === EVENTS.ON_TOOMANYATTEMPTS) onTooManyAttempts(props);
     });
-    await poll;
+    await init();
 
     expect(onTooManyAttempts).toHaveBeenCalledTimes(1);
     expect(onTooManyAttempts).toHaveBeenCalledWith({
@@ -170,14 +170,14 @@ describe('subscribePolling', () => {
     const onError = jest.fn();
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
 
-    const { subscribe, poll } = subscribePolling(fetcher, {
+    const { subscribe, init } = subscribePolling(fetcher, {
       until: () => false,
     });
 
     subscribe(props => {
       if (props.event === EVENTS.ON_ERROR) onError(props);
     });
-    await poll;
+    await init();
 
     expect(onError).toHaveBeenCalledTimes(5);
     expect(onError).toHaveBeenLastCalledWith({
@@ -202,14 +202,14 @@ describe('subscribePolling', () => {
     const onTooManyErrors = jest.fn();
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
 
-    const { subscribe, poll } = subscribePolling(fetcher, {
+    const { subscribe, init } = subscribePolling(fetcher, {
       until: () => false,
     });
 
     subscribe(props => {
       if (props.event === EVENTS.ON_TOOMANYERRORS) onTooManyErrors(props);
     });
-    await poll;
+    await init();
 
     expect(onTooManyErrors).toHaveBeenCalledTimes(1);
     expect(onTooManyErrors).toHaveBeenCalledWith({
@@ -234,14 +234,14 @@ describe('subscribePolling', () => {
     const onBreak = jest.fn();
     const fetcher = jest.fn().mockReturnValue('data');
 
-    const { subscribe, poll } = subscribePolling(fetcher, {
+    const { subscribe, init } = subscribePolling(fetcher, {
       breakIf: () => true,
     });
 
     subscribe(props => {
       if (props.event === EVENTS.ON_BREAK) onBreak(props);
     });
-    await poll;
+    await init();
 
     expect(onBreak).toHaveBeenCalledTimes(1);
     expect(onBreak).toHaveBeenCalledWith({
@@ -261,11 +261,11 @@ describe('subscribePolling', () => {
     const fetcher = jest.fn().mockReturnValue(5);
     let counter = 1;
 
-    const { poll } = subscribePolling(fetcher, {
+    const { init } = subscribePolling(fetcher, {
       until: ({ data }) => counter++ === data,
     });
 
-    const { data, error, attempt, attemptsDuration, duration, errorsCount } = await poll;
+    const { data, error, attempt, attemptsDuration, duration, errorsCount } = await init();
 
     expect(data).toBe(5);
     expect(error).toBeNull();
@@ -285,7 +285,7 @@ describe('subscribePolling', () => {
     const onTooManyAttempts = jest.fn();
     const onFinish = jest.fn();
 
-    const { subscribe, poll } = subscribePolling(fetcher, {
+    const { subscribe, init } = subscribePolling(fetcher, {
       until: () => false,
       onComplete,
       onBreak,
@@ -308,7 +308,7 @@ describe('subscribePolling', () => {
       if (props.event === EVENTS.ON_TOOMANYATTEMPTS) onTooManyAttempts(props);
     });
 
-    const { attempt, error, data } = await poll;
+    const { attempt, error, data } = await init();
 
     expect(attempt).toBe(1);
     expect(error).not.toBeNull();

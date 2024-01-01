@@ -3,13 +3,14 @@ import { PureOptions, Reactions } from './core/createPolling';
 import { createPolling } from './core/createPolling';
 import { createSubscribers } from '../utils/subscribers';
 import { ReactionsProps } from './core/createPolling';
+import { validateOptions } from './core/validateOptions';
 
 /**
  * @description
  * this function allows you to subscribe to the polling with retries and errors count.
  * It is useful when you want to keep going with the request until you get the result you want or until you reach the max retries or max errors count.
  * @example
- * const { subscribe } = subscribePolling(fetchStuff, {
+ * const { subscribe, init } = subscribePolling(fetchStuff, {
  *   // max retries count. If maxPolls is reached, onTooManyAttempts will be called
  *   maxPolls: 10,
  *   // max errors count. If maxErrors is reached, onTooManyErrors will be called
@@ -26,7 +27,9 @@ import { ReactionsProps } from './core/createPolling';
  *
  * /// somewhere.ts in your code react on the polling events.
  * import { EVENTS } from '@ilyagershman/easy-poll';
- * import { subscribe } from './somewhere';
+ * import { subscribe, init } from './somewhere';
+ *
+ * init();
  *
  * subscribe(props => {
  *   if (props.event === EVENTS.ON_COMPLETE) onComplete(props);
@@ -77,7 +80,9 @@ export function subscribePolling<T>(fetcher: () => Promise<T>, pureOptions?: Pur
     },
   };
 
-  const poll = createPolling<T>(fetcher, { ...pureOptions, ...subscribtionOptions }).poll();
+  const options = validateOptions({ ...pureOptions, ...subscribtionOptions });
 
-  return { subscribe, poll };
+  const init = () => createPolling<T>(fetcher, options).poll();
+
+  return { subscribe, init };
 }
