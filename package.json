@@ -52,7 +52,7 @@
   },
   "exports": {
     ".": {
-      "require": "./dist/easy-poll.cjs.js",
+      "require": "./dist/easy-poll.cjs",
       "import": "./dist/easy-poll.esm.js",
       "types": "./dist/easy-poll.d.ts"
     },
