@@ -75,7 +75,6 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
   const getIsTooManyErrors = () => state.get.errorsCount() >= maxErrors;
 
   const poll = async () => {
-    await wait(4);
     onStart();
 
     while (true) {
