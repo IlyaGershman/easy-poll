@@ -50,6 +50,14 @@
     "tslib": "^2.6.2",
     "typescript": "^5.3.3"
   },
+  "exports": {
+    ".": {
+      "require": "./dist/easy-poll.cjs.js",
+      "import": "./dist/easy-poll.esm.js",
+      "types": "./dist/easy-poll.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "description": "This is small lightweight library that should allow you to easily create a polling mechanism and have full controll over it.",
   "bugs": {
     "url": "https://github.com/IlyaGershman/easy-poll/issues"
