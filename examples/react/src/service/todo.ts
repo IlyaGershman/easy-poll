@@ -1,4 +1,4 @@
-import { subscribePolling } from '../../../../src/index';
+import { subscribePolling } from '../../../../';
 import { getRandomInt } from '../utils/getRandomInt';
 
 export const fetchTodo = (id: number) => {

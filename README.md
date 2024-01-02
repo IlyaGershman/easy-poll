@@ -76,7 +76,7 @@ You can also subscribe to the execution of the polling. It uses the same engine 
 When called. the function returns an object with two functions: `subscribe` and `init`.
 
 `init` is a function that starts the polling. It returns a promise with the result of the polling (same as `doPolling`).
-Every time polling event is triggered, the `subscribe` function will be called with the event props that are the same as `doPolling` callbacks.
+Every time polling event is triggered, the callback passed to the `subscribe` function will be called with the event props that are the same as `doPolling` callbacks.
 
 ```ts
 // someService.ts

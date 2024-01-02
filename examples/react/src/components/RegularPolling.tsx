@@ -1,5 +1,5 @@
 import React from 'react';
-import { doPolling } from '../../../../src/index';
+import { doPolling } from '../../../../';
 import { fetchTodo } from '../service/todo';
 
 let count = 0;

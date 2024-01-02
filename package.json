@@ -3,7 +3,7 @@
   "version": "2.1.0",
   "license": "MIT",
   "type": "module",
-  "main": "dist/easy-poll.cjs.js",
+  "main": "dist/easy-poll.cjs",
   "module": "dist/easy-poll.esm.js",
   "browser": "dist/easy-poll.umd.js",
   "types": "dist/easy-poll.d.ts",
