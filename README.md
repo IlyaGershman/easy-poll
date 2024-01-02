@@ -4,9 +4,31 @@
 
 This is a small lightweight and fully typed library that should allow you to easily create a polling mechanism and have full controll over it.
 
-Less text, more code? We got you. [Try this sandbox](https://codesandbox.io/p/devbox/dopolling-playground-4l5ct7?embed=1&file=%2Fsrc%2FApp.tsx)
+## Examples
 
-### <h1>doPolling()</h1>
+Less text, more code? We got you:
+
+- [This sandbox](https://codesandbox.io/p/devbox/dopolling-playground-4l5ct7?embed=1&file=%2Fsrc%2FApp.tsx) for react example.
+
+- [This sandbox](https://codesandbox.io/p/devbox/easy-poll-express-sandbox-gjhzt4?file=%2Findex.js%3A23%2C26) for nodejs example.
+
+- You can also check [examples](https://github.com/IlyaGershman/easy-poll/tree/main/examples) folder. See readme files of an example to know how to run it localy.
+
+## Installation
+
+```bash
+npm install @ilyagershman/easy-poll
+```
+
+```bash
+yarn add @ilyagershman/easy-poll
+```
+
+```bash
+pnpm install @ilyagershman/easy-poll
+```
+
+## doPolling()
 
 Just import the `doPolling` in your project and enjoy the results.
 
@@ -70,7 +92,7 @@ await doPolling(fetchStuff, {
 
 for more complete spec, you can refer to the `doPolling.test.ts` file.
 
-### <h2>subscribePolling()</h2>
+## subscribePolling()
 
 You can also subscribe to the execution of the polling. It uses the same engine under the hood.
 When called. the function returns an object with two functions: `subscribe` and `init`.
@@ -117,11 +139,9 @@ subscribe(props => {
 });
 ```
 
-You can check `examples` folder for a working example. Check out readme there the start the example project.
-
 for the complete spec, you can refer to the `subscribePolling.test.ts` file.
 
-### Issues
+## Issues
 
 Please feel free to open any [issues](https://github.com/IlyaGershman/easy-poll/issues) and suggestions!
 
