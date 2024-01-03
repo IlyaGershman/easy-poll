@@ -347,6 +347,75 @@ describe('subscribePolling', () => {
     expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
   });
 
+  it('should emergency break', async () => {
+    const emergencyBreak = jest.fn().mockReturnValue(true);
+    const fetcher = jest.fn().mockReturnValue('data');
+    const onComplete = jest.fn();
+    const onBreak = jest.fn();
+    const onNext = jest.fn();
+    const onError = jest.fn();
+    const onTooManyErrors = jest.fn();
+    const onTooManyAttempts = jest.fn();
+    const onFinish = jest.fn();
+
+    const { subscribe, init } = subscribePolling(fetcher, {
+      until: () => false,
+      emergencyBreak,
+    });
+
+    subscribe(props => {
+      if (props.event === EVENTS.ON_COMPLETE) onComplete(props);
+      if (props.event === EVENTS.ON_BREAK) onBreak(props);
+      if (props.event === EVENTS.ON_NEXT) onNext(props);
+      if (props.event === EVENTS.ON_ERROR) onError(props);
+      if (props.event === EVENTS.ON_FINISH) onFinish(props);
+      if (props.event === EVENTS.ON_TOOMANYERRORS) onTooManyErrors(props);
+      if (props.event === EVENTS.ON_TOOMANYATTEMPTS) onTooManyAttempts(props);
+    });
+
+    const { attempt, error, data } = await init();
+
+    expect(attempt).toBe(1);
+    expect(error).toBeNull();
+    expect(data).toBe('data');
+    expect(emergencyBreak).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(onFinish).toHaveBeenCalledTimes(0);
+    expect(onComplete).toHaveBeenCalledTimes(0);
+    expect(onBreak).toHaveBeenCalledTimes(0);
+    expect(onNext).toHaveBeenCalledTimes(0);
+    expect(onError).toHaveBeenCalledTimes(0);
+    expect(onTooManyErrors).toHaveBeenCalledTimes(0);
+    expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
+  });
+
+  it('should be able to emergency break with error', async () => {
+    const emergencyBreak = jest.fn().mockReturnValue(true);
+    const fetcher = jest.fn().mockRejectedValue(new Error('error'));
+    const onComplete = jest.fn();
+    const onFinish = jest.fn();
+
+    const { subscribe, init } = subscribePolling(fetcher, {
+      until: () => false,
+      emergencyBreak,
+    });
+
+    subscribe(props => {
+      if (props.event === EVENTS.ON_COMPLETE) onComplete(props);
+      if (props.event === EVENTS.ON_FINISH) onFinish(props);
+    });
+
+    const { attempt, error, data } = await init();
+
+    expect(attempt).toBe(1);
+    expect(error).toEqual(new Error('error'));
+    expect(data).toBeNull();
+    expect(emergencyBreak).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(onFinish).toHaveBeenCalledTimes(0);
+    expect(onComplete).toHaveBeenCalledTimes(0);
+  });
+
   describe('options validation', () => {
     it('should throw an error when maxErrors is less than 0', async () => {
       const fetcher = jest.fn();
@@ -399,6 +468,14 @@ describe('subscribePolling', () => {
 
       // @ts-ignore
       expect(() => subscribePolling(fetcher, { breakIfError })).toThrow('breakIfError must be a function');
+    });
+
+    it('should throw an error when emergencyBreak is not a function', async () => {
+      const fetcher = jest.fn();
+      const emergencyBreak = 'not a function';
+
+      // @ts-ignore
+      expect(() => subscribePolling(fetcher, { emergencyBreak })).toThrow('emergencyBreak must be a function');
     });
   });
 });

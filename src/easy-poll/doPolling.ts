@@ -41,6 +41,8 @@ import { createPolling } from './core/createPolling';
  *  onTooManyErrors: ({ retry, errorsCount, error }) => {},
  *  // onIntervalError will be called if the interval function throws an error
  *  onIntervalError({ data, error, attempt ,attemptsDuration, errorsCount, duration }) => {}
+ *  // emergencyBreak can be used to stop polling from the outside at once. No more callbacks will be called.
+ *  emergencyBreak: ({data, error, attempt }) => data === 'I need your clothes, your boots, and your motorcycle',
  * );
  * @param fetcher
  * @param options - maxErrors, maxPolls, interval, until, onStart, onComplete, onNext, onError, onTooManyAttempts, onTooManyErrors

@@ -10,12 +10,8 @@ export function createState<T>() {
   let errorsCount = 0;
 
   const get = {
-    data: () => data,
-    error: () => error,
     attempt: () => attempt,
     errorsCount: () => errorsCount,
-    duration: () => timer.duration(),
-    attemptsDuration: () => attemptsDuration,
 
     common: () => ({ attempt, attemptsDuration, errorsCount, duration: timer.duration() }),
     success: () => ({ ...get.common(), data }),
