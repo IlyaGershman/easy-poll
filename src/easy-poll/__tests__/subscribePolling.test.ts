@@ -348,7 +348,7 @@ describe('subscribePolling', () => {
   });
 
   it('should emergency break', async () => {
-    const emergencyBreak = jest.fn().mockReturnValue(true);
+    const abort = jest.fn().mockReturnValue(true);
     const fetcher = jest.fn().mockReturnValue('data');
     const onComplete = jest.fn();
     const onBreak = jest.fn();
@@ -360,7 +360,7 @@ describe('subscribePolling', () => {
 
     const { subscribe, init } = subscribePolling(fetcher, {
       until: () => false,
-      emergencyBreak,
+      abort,
     });
 
     subscribe(props => {
@@ -378,7 +378,7 @@ describe('subscribePolling', () => {
     expect(attempt).toBe(1);
     expect(error).toBeNull();
     expect(data).toBe('data');
-    expect(emergencyBreak).toHaveBeenCalledTimes(1);
+    expect(abort).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(0);
     expect(onComplete).toHaveBeenCalledTimes(0);
@@ -390,14 +390,14 @@ describe('subscribePolling', () => {
   });
 
   it('should be able to emergency break with error', async () => {
-    const emergencyBreak = jest.fn().mockReturnValue(true);
+    const abort = jest.fn().mockReturnValue(true);
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
     const onComplete = jest.fn();
     const onFinish = jest.fn();
 
     const { subscribe, init } = subscribePolling(fetcher, {
       until: () => false,
-      emergencyBreak,
+      abort,
     });
 
     subscribe(props => {
@@ -410,7 +410,7 @@ describe('subscribePolling', () => {
     expect(attempt).toBe(1);
     expect(error).toEqual(new Error('error'));
     expect(data).toBeNull();
-    expect(emergencyBreak).toHaveBeenCalledTimes(1);
+    expect(abort).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(0);
     expect(onComplete).toHaveBeenCalledTimes(0);
@@ -470,12 +470,12 @@ describe('subscribePolling', () => {
       expect(() => subscribePolling(fetcher, { breakIfError })).toThrow('breakIfError must be a function');
     });
 
-    it('should throw an error when emergencyBreak is not a function', async () => {
+    it('should throw an error when abort is not a function', async () => {
       const fetcher = jest.fn();
-      const emergencyBreak = 'not a function';
+      const abort = 'not a function';
 
       // @ts-ignore
-      expect(() => subscribePolling(fetcher, { emergencyBreak })).toThrow('emergencyBreak must be a function');
+      expect(() => subscribePolling(fetcher, { abort })).toThrow('abort must be a function');
     });
   });
 });

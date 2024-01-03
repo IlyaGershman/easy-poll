@@ -28,7 +28,7 @@ export type PureOptions<T> = {
   until?: (props: SuccessProps<T>) => boolean;
   breakIf?: (props: SuccessProps<T>) => boolean;
   breakIfError?: (props: ErrorProps<T>) => boolean;
-  emergencyBreak?: (props: State<T>) => boolean;
+  abort?: (props: State<T>) => boolean;
 };
 
 export type Options<T> = PureOptions<T> & Reactions<T>;
@@ -44,7 +44,7 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
     until = () => true,
     breakIf = () => false,
     breakIfError = () => false,
-    emergencyBreak = () => false,
+    abort = () => false,
 
     onStart = () => {},
     onBreak = () => {},
@@ -88,7 +88,7 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
       try {
         const data = await fetcher();
         state.on.newData(data);
-        if (emergencyBreak(state.get.all())) {
+        if (abort(state.get.all())) {
           return state.get.all();
         }
 
@@ -118,7 +118,7 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
         await wait(newInterval);
       } catch (e) {
         state.on.newCatch(e);
-        if (emergencyBreak(state.get.all())) {
+        if (abort(state.get.all())) {
           return state.get.all();
         }
 

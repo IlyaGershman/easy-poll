@@ -342,9 +342,9 @@ describe('doPolling', () => {
     expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
   });
 
-  it('should emergency break when emergencyBreak returns true', async () => {
+  it('should emergency break when abort returns true', async () => {
     const fetcher = jest.fn().mockReturnValue('data');
-    const emergencyBreak = jest.fn().mockReturnValue(true);
+    const abort = jest.fn().mockReturnValue(true);
     const onComplete = jest.fn();
     const onBreak = jest.fn();
     const onNext = jest.fn();
@@ -355,7 +355,7 @@ describe('doPolling', () => {
 
     const { attempt, error, data } = await doPolling(fetcher, {
       until: () => false,
-      emergencyBreak,
+      abort,
       onComplete,
       onBreak,
       onNext,
@@ -368,7 +368,7 @@ describe('doPolling', () => {
     expect(attempt).toBe(1);
     expect(error).toBeNull();
     expect(data).toBe('data');
-    expect(emergencyBreak).toHaveBeenCalledTimes(1);
+    expect(abort).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(0);
     expect(onComplete).toHaveBeenCalledTimes(0);
@@ -380,14 +380,14 @@ describe('doPolling', () => {
   });
 
   it('should be able to emergency break with error', async () => {
-    const emergencyBreak = jest.fn().mockReturnValue(true);
+    const abort = jest.fn().mockReturnValue(true);
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
     const onComplete = jest.fn();
     const onFinish = jest.fn();
 
     const { attempt, error, data } = await doPolling(fetcher, {
       until: () => false,
-      emergencyBreak,
+      abort,
       onComplete,
       onFinish,
     });
@@ -395,7 +395,7 @@ describe('doPolling', () => {
     expect(attempt).toBe(1);
     expect(error).toEqual(new Error('error'));
     expect(data).toBeNull();
-    expect(emergencyBreak).toHaveBeenCalledTimes(1);
+    expect(abort).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(0);
     expect(onComplete).toHaveBeenCalledTimes(0);
@@ -531,12 +531,12 @@ describe('doPolling', () => {
       expect(() => doPolling(fetcher, { onIntervalError })).toThrow('onIntervalError must be a function');
     });
 
-    it('should throw an error when emergencyBreak is not a function', async () => {
+    it('should throw an error when abort is not a function', async () => {
       const fetcher = jest.fn();
-      const emergencyBreak = 'not a function';
+      const abort = 'not a function';
 
       // @ts-ignore
-      expect(() => doPolling(fetcher, { emergencyBreak })).toThrow('emergencyBreak must be a function');
+      expect(() => doPolling(fetcher, { abort })).toThrow('abort must be a function');
     });
   });
 });

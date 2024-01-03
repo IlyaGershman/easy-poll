@@ -54,8 +54,8 @@ const { error, data, attempt, attemptsDuration, duration, errorsCount } = await 
   breakIfError: ({ error }) => error.code === 404,
   // onBreakError will be called if breakIfError is true
   onBreakError: ({ error, attempt, errorsCount }) => {},
-  // emergencyBreak can be used to stop polling from the outside at once. No more callbacks will be called.
-  emergencyBreak: ({data, error, attempt }) => data === 'I need your clothes, your boots, and your motorcycle',
+  // abort can be used to stop polling from the outside at once. No more callbacks will be called.
+  abort: ({data, error, attempt }) => data === 'I need your clothes, your boots, and your motorcycle',
   // onStart will be called before polling
   onStart: () => {},
   // onNext will be called after each successful poll, except the last one
@@ -125,8 +125,8 @@ export const { subscribe, init } = subscribePolling(fetchStuff, {
   breakIf: data => data.received !== total,
     // breakIfError acts the same as breakIf, but for errors. It is useful when you want to stop polling if you receive a specific error type.
   breakIfError: ({ error }) => error.code === 404,
-  // emergencyBreak can be used to stop polling from the outside at once. No more callbacks will be called.
-  emergencyBreak: ({data, error, attempt }) => data === 'I need your clothes, your boots, and your motorcycle',
+  // abort can be used to stop polling from the outside at once. No more callbacks will be called.
+  abort: ({data, error, attempt }) => data === 'I need your clothes, your boots, and your motorcycle',
 });
 
 /// somewhere.ts in your code react on the polling events.
