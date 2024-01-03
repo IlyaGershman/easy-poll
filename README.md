@@ -119,10 +119,10 @@ export const { subscribe, init } = subscribePolling(fetchStuff, {
   interval: () => getRandomInt(10000),
   // polling will be stopped if the condition is true. If the condition is not provided,
   // polling will be stopped after one successful request
-  until: data => data.status === 'SUCCESS',
+  until: ({ data }) => data.status === 'SUCCESS',
   // polling will be stopped if breakIf is true.
   // This is useful when you want to stop polling if you know that you will never get the result you want.
-  breakIf: data => data.received !== total,
+  breakIf: ({ data }) => data.received !== total,
     // breakIfError acts the same as breakIf, but for errors. It is useful when you want to stop polling if you receive a specific error type.
   breakIfError: ({ error }) => error.code === 404,
   // abort can be used to stop polling from the outside at once. No more callbacks will be called.
@@ -154,6 +154,10 @@ for the complete spec, you can refer to the `subscribePolling.test.ts` file.
 ## Issues
 
 Please feel free to open any [issues](https://github.com/IlyaGershman/easy-poll/issues) and suggestions!
+
+## Like this repo?
+
+ ⭐️ this repo, it will help others find it ❤️
 
 ## Licence
 
