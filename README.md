@@ -2,7 +2,7 @@
 
 <img src="./badges/badge-functions.svg" /><img src="./badges/badge-branches.svg" /><img src="./badges/badge-lines.svg" /><img src="./badges/badge-statements.svg" />
 
-This is a small lightweight and fully typed library that should allow you to easily create a polling mechanism and have full controll over it.
+This is a simple, battle tested and fully typed library that will help you create a polling mechanism and have full controll over it.
 
 ## Examples
 
