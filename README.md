@@ -44,20 +44,24 @@ const { error, data, attempt, attemptsDuration, duration, errorsCount } = await 
   interval: 1000,
   // polling will be stopped if condition is true. If condition is not provided,
   // polling will be stopped after one successful request
-  until: data => data.status === 'SUCCESS',
-  // onComplete will be called after polling is completed
-  onComplete: ({ data, attempt, errorsCount }) => {},
+  until: ({ data }) => data.status === 'SUCCESS',
   // polling will be stopped if breakIf is true.
   // This is useful when you want to stop polling if you know that you will never get the result you want.
-  breakIf: data => data.received !== total,
+  breakIf: ({ data }) => data.received !== total,
   // onBreak will be called if breakIf is true
   onBreak: ({ data, attempt, errorsCount }) => {},
+  // breakIfError acts the same as breakIf, but for errors. It is useful when you want to stop polling if you receive a specific error type.
+  breakIfError: ({ error }) => error.code === 404,
+  // onBreakError will be called if breakIfError is true
+  onBreakError: ({ error, attempt, errorsCount }) => {},
   // onStart will be called before polling
   onStart: () => {},
-  // onFinish will be called after polling is finished with whichever result
-  onFinish: ({ data, attempt, errorsCount }) => {},
   // onNext will be called after each successful poll, except the last one
   onNext: ({ data, attempt, errorsCount }) => {},
+  // onComplete will be called after polling is completed
+  onComplete: ({ data, attempt, errorsCount }) => {},
+  // onFinish will be called after polling is finished with whichever result
+  onFinish: ({ data, attempt, errorsCount }) => {},
   // onError will be called after each failed poll
   onError: ({ retry, errorsCount, error }) => {},
   // onTooManyAttempts will be called if maxPolls is reached.

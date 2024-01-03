@@ -23,6 +23,10 @@ import { createPolling } from './core/createPolling';
  *  breakIf: data => data.received !== total,
  *  // onBreak will be called if breakIf is true
  *  onBreak: ({ data, attempt, errorsCount }) => {},
+ *  //breakIfError acts the same as breakIf, but for errors. It is useful when you want to stop polling if you receive a specific error type.
+ *  breakIfError: ({ error }) => error.code === 404,
+ *  // onErrorBreak will be called if breakIfError is true
+ *  onErrorBreak: ({ error, attempt, errorsCount }) => {},
  *  // onStart will be called before polling
  *  onStart: () => {},
  *  // onFinish will be called after polling is finished with whichever result

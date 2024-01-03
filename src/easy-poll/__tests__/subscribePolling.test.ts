@@ -198,6 +198,30 @@ describe('subscribePolling', () => {
     });
   });
 
+  it('should call onErrorBreak', async () => {
+    const onErrorBreak = jest.fn();
+    const fetcher = jest.fn().mockRejectedValue(new Error('error'));
+
+    const { subscribe, init } = subscribePolling(fetcher, { breakIfError: () => true });
+
+    subscribe(props => {
+      if (props.event === EVENTS.ON_ERRORBREAK) onErrorBreak(props);
+    });
+    await init();
+
+    expect(onErrorBreak).toHaveBeenCalledTimes(1);
+    expect(onErrorBreak).toHaveBeenCalledWith({
+      event: EVENTS.ON_ERRORBREAK,
+      props: {
+        attempt: 1,
+        errorsCount: 1,
+        error: new Error('error'),
+        attemptsDuration: [expect.any(Number)],
+        duration: expect.any(Number),
+      },
+    });
+  });
+
   it('should call onTooManyErrors', async () => {
     const onTooManyErrors = jest.fn();
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
@@ -367,6 +391,14 @@ describe('subscribePolling', () => {
 
       // @ts-ignore
       expect(() => subscribePolling(fetcher, { breakIf })).toThrow('breakIf must be a function');
+    });
+
+    it('should throw an error when breakIfError is not a function', async () => {
+      const fetcher = jest.fn();
+      const breakIfError = 'not a function';
+
+      // @ts-ignore
+      expect(() => subscribePolling(fetcher, { breakIfError })).toThrow('breakIfError must be a function');
     });
   });
 });

@@ -53,6 +53,14 @@ export const validateOptions = <T>(o?: Options<T>) => {
     throw new Error('onError must be a function');
   }
 
+  if (o.onErrorBreak !== undefined && typeof o.onErrorBreak !== 'function') {
+    throw new Error('onErrorBreak must be a function');
+  }
+
+  if (o.breakIfError !== undefined && typeof o.breakIfError !== 'function') {
+    throw new Error('breakIfError must be a function');
+  }
+
   if (o.onTooManyAttempts !== undefined && typeof o.onTooManyAttempts !== 'function') {
     throw new Error('onTooManyAttempts must be a function');
   }

@@ -124,6 +124,31 @@ describe('doPolling', () => {
     });
   });
 
+  it('should call onErrorBreak', async () => {
+    const onErrorBreak = jest.fn();
+    const onError = jest.fn().mockReturnValue({ shouldBreak: true });
+    const onFinish = jest.fn();
+    const fetcher = jest.fn().mockRejectedValue(new Error('error'));
+
+    await doPolling(fetcher, {
+      breakIfError: () => true,
+      onErrorBreak,
+      onError,
+      onFinish,
+    });
+
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onErrorBreak).toHaveBeenCalledTimes(1);
+    expect(onErrorBreak).toHaveBeenCalledWith({
+      attempt: 1,
+      errorsCount: 1,
+      error: new Error('error'),
+      attemptsDuration: [expect.any(Number)],
+      duration: expect.any(Number),
+    });
+  });
+
   it('should call onTooManyErrors', async () => {
     const onTooManyErrors = jest.fn();
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
@@ -397,6 +422,22 @@ describe('doPolling', () => {
 
       // @ts-ignore
       expect(() => doPolling(fetcher, { onError })).toThrow('onError must be a function');
+    });
+
+    it('should throw an error when onErrorBreak is not a function', async () => {
+      const fetcher = jest.fn();
+      const onErrorBreak = 'not a function';
+
+      // @ts-ignore
+      expect(() => doPolling(fetcher, { onErrorBreak })).toThrow('onErrorBreak must be a function');
+    });
+
+    it('should throw an error when breakIfError is not a function', async () => {
+      const fetcher = jest.fn();
+      const breakIfError = 'not a function';
+
+      // @ts-ignore
+      expect(() => doPolling(fetcher, { breakIfError })).toThrow('breakIfError must be a function');
     });
 
     it('should throw an error when onTooManyErrors is not a function', async () => {

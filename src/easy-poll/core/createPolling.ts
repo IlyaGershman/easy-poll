@@ -16,6 +16,7 @@ export type Reactions<T> = {
   onNext?: (props: SuccessProps<T>) => void;
   onTooManyAttempts?: (props: SuccessProps<T>) => void;
   onError?: (props: ErrorProps<T>) => void;
+  onErrorBreak?: (props: ErrorProps<T>) => void;
   onTooManyErrors?: (props: ErrorProps<T>) => void;
   onIntervalError?: (props: State<T>) => void;
 };
@@ -26,6 +27,7 @@ export type PureOptions<T> = {
   interval?: ((props: State<T>) => number) | number;
   until?: (props: SuccessProps<T>) => boolean;
   breakIf?: (props: SuccessProps<T>) => boolean;
+  breakIfError?: (props: ErrorProps<T>) => boolean;
 };
 
 export type Options<T> = PureOptions<T> & Reactions<T>;
@@ -40,15 +42,18 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
     interval = isTest() ? 1 : POLLING_INTERVAL,
     until = () => true,
     breakIf = () => false,
-    onBreak = () => {},
+    breakIfError = () => false,
+
     onStart = () => {},
-    onFinish = () => {},
+    onBreak = () => {},
     onComplete = () => {},
     onNext = () => {},
     onError = () => {},
+    onErrorBreak = () => {},
     onTooManyAttempts = () => {},
     onTooManyErrors = () => {},
     onIntervalError = () => {},
+    onFinish = () => {},
   } = validateOptions(options);
 
   const state = createState<T>();
@@ -110,6 +115,11 @@ export function createPolling<T>(fetcher: () => Promise<T>, options?: Options<T>
         state.on.newCatch(e);
 
         onError(state.get.catch());
+
+        if (breakIfError(state.get.catch())) {
+          onErrorBreak(state.get.catch());
+          break;
+        }
 
         if (getIsTooManyErrors()) {
           onTooManyErrors(state.get.catch());
