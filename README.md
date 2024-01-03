@@ -37,14 +37,14 @@ import { doPolling } from '@ilyagershman/easy-poll';
 
 const { error, data, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetchStuff, {
   // max retries count. If maxPolls is reached, onTooManyAttempts will be called
-  maxPolls: 10,
+  maxPolls: 10, // default is Infinity
   // max errors count. If maxErrors is reached, onTooManyErrors will be called
-  maxErrors: 5,
+  maxErrors: 5, // default is 5
   // interval between retries. Can be a number or function that is called on every poll
-  interval: 1000,
+  interval: 1000, // default is 2000
   // polling will be stopped if condition is true. If condition is not provided,
   // polling will be stopped after one successful request
-  until: ({ data }) => data.status === 'SUCCESS',
+  until: ({ data }) => data.status === 'SUCCESS', // default is () => true
   // polling will be stopped if breakIf is true.
   // This is useful when you want to stop polling if you know that you will never get the result you want.
   breakIf: ({ data }) => data.received !== total,
