@@ -8,11 +8,11 @@
   "browser": "dist/easy-poll.umd.js",
   "types": "dist/easy-poll.d.ts",
   "scripts": {
-    "ci": "npm run build && npm run test",
+    "ci": "yarn run build && yarn run test",
     "coverage": "jest --coverage=true",
     "test": "jest",
-    "test:coverage": "npm test -- --coverage",
-    "test:badges": "npm run test:coverage  && jest-coverage-badges --output ./badges",
+    "test:coverage": "yarn test -- --coverage",
+    "test:badges": "yarn run test:coverage  && jest-coverage-badges --output ./badges",
     "test:watch": "jest --watchAll",
     "build": "rollup -c",
     "dev": "rollup -c -w",
@@ -48,7 +48,8 @@
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-esbuild": "^6.1.0",
     "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "jest-coverage-badges": "^1.1.2"
   },
   "exports": {
     ".": {
@@ -77,8 +78,5 @@
     "async-await",
     "promise"
   ],
-  "author": "ilyagershman",
-  "dependencies": {
-    "jest-coverage-badges": "^1.1.2"
-  }
+  "author": "ilyagershman"
 }
