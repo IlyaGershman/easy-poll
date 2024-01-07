@@ -60,7 +60,7 @@ const { init, abort } = await doPolling(fetchStuff,
     // onTooManyErrors will be called if maxErrors is reached.
     onTooManyErrors: ({ retry, errorsCount, error }) => {},
     // onIntervalError will be called if the interval function throws an error
-    onIntervalError({ data, error, attempt, attemptsDuration, errorsCount, duration }) => {}
+    onIntervalError({ data, error, attempt, attemptsDuration, errorsCount, duration }) => {},
     // polling will be stopped if breakIf is true. This is useful when you want to stop polling if you know that you will never get the result you want.
     breakIf: ({ data }) => data.received !== total,
     // onBreak will be called if breakIf is true
