@@ -1,6 +1,6 @@
 import { createTimer } from '../../utils/timers';
 
-export function createState<T>() {
+export function createPollState<T>() {
   const timer = createTimer();
 
   let data: T | null = null;

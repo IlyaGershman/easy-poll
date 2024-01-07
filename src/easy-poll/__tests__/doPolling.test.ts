@@ -4,7 +4,7 @@ describe('doPolling', () => {
   it('should call fetcher', async () => {
     const fetcher = jest.fn();
 
-    await doPolling(fetcher);
+    await doPolling(fetcher).init();
 
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
@@ -15,7 +15,7 @@ describe('doPolling', () => {
 
     await doPolling(fetcher, {
       onStart,
-    });
+    }).init();
 
     expect(onStart).toHaveBeenCalledTimes(1);
   });
@@ -26,7 +26,7 @@ describe('doPolling', () => {
 
     await doPolling(fetcher, {
       onFinish,
-    });
+    }).init();
 
     expect(onFinish).toHaveBeenCalledTimes(1);
   });
@@ -38,7 +38,7 @@ describe('doPolling', () => {
     await doPolling(fetcher, {
       onComplete,
       until: () => true,
-    });
+    }).init();
 
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(onComplete).toHaveBeenCalledWith({
@@ -57,7 +57,7 @@ describe('doPolling', () => {
     await doPolling(fetcher, {
       onNext,
       until: () => false,
-    });
+    }).init();
 
     expect(onNext).toHaveBeenCalledTimes(4);
     expect(onNext).toHaveBeenLastCalledWith({
@@ -82,7 +82,7 @@ describe('doPolling', () => {
     await doPolling(fetcher, {
       onTooManyAttempts,
       until: () => false,
-    });
+    }).init();
 
     expect(onTooManyAttempts).toHaveBeenCalledTimes(1);
     expect(onTooManyAttempts).toHaveBeenCalledWith({
@@ -106,7 +106,7 @@ describe('doPolling', () => {
 
     await doPolling(fetcher, {
       onError,
-    });
+    }).init();
 
     expect(onError).toHaveBeenCalledTimes(5);
     expect(onError).toHaveBeenLastCalledWith({
@@ -135,7 +135,7 @@ describe('doPolling', () => {
       onErrorBreak,
       onError,
       onFinish,
-    });
+    }).init();
 
     expect(onFinish).toHaveBeenCalledTimes(1);
     expect(onError).toHaveBeenCalledTimes(1);
@@ -155,7 +155,7 @@ describe('doPolling', () => {
 
     await doPolling(fetcher, {
       onTooManyErrors,
-    });
+    }).init();
 
     expect(onTooManyErrors).toHaveBeenCalledTimes(1);
     expect(onTooManyErrors).toHaveBeenCalledWith({
@@ -180,7 +180,7 @@ describe('doPolling', () => {
     await doPolling(fetcher, {
       onBreak,
       breakIf: () => true,
-    });
+    }).init();
 
     expect(onBreak).toHaveBeenCalledTimes(1);
     expect(onBreak).toHaveBeenCalledWith({
@@ -196,7 +196,7 @@ describe('doPolling', () => {
   it('should call fetcher 5 times when it throws', async () => {
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
 
-    await doPolling(fetcher);
+    await doPolling(fetcher).init();
 
     expect(fetcher).toHaveBeenCalledTimes(5);
   });
@@ -206,7 +206,7 @@ describe('doPolling', () => {
 
     await doPolling(fetcher, {
       maxErrors: 2,
-    });
+    }).init();
 
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
@@ -217,7 +217,7 @@ describe('doPolling', () => {
     await doPolling(fetcher, {
       until: () => false,
       maxPolls: 2,
-    });
+    }).init();
 
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
@@ -228,7 +228,7 @@ describe('doPolling', () => {
 
     const { data, error, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetcher, {
       until: ({ data }) => counter++ === data,
-    });
+    }).init();
 
     expect(data).toBe(5);
     expect(error).toBeNull();
@@ -243,7 +243,7 @@ describe('doPolling', () => {
 
     const { data, error, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetcher, {
       until: () => false,
-    });
+    }).init();
 
     expect(data).toBe('data');
     expect(error).toBeNull();
@@ -258,7 +258,7 @@ describe('doPolling', () => {
 
     const { data, error, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetcher, {
       breakIf: () => true,
-    });
+    }).init();
 
     expect(data).toBe('data');
     expect(error).toBeNull();
@@ -271,7 +271,7 @@ describe('doPolling', () => {
   it('should return error when polling has failed the data should be null', async () => {
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
 
-    const { error, data, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetcher);
+    const { error, data, attempt, attemptsDuration, duration, errorsCount } = await doPolling(fetcher).init();
 
     expect(error).toEqual(new Error('error'));
     expect(data).toBeNull();
@@ -288,7 +288,7 @@ describe('doPolling', () => {
     await doPolling(fetcher, {
       until: () => false,
       interval,
-    });
+    }).init();
 
     expect(interval).toHaveBeenCalledTimes(4);
   });
@@ -301,7 +301,7 @@ describe('doPolling', () => {
       until: () => false,
       interval: () => -1,
       onIntervalError,
-    });
+    }).init();
 
     expect(onIntervalError).toHaveBeenCalledTimes(1);
   });
@@ -327,7 +327,7 @@ describe('doPolling', () => {
       onTooManyAttempts,
       // @ts-ignore
       interval: () => 'bad interval',
-    });
+    }).init();
 
     expect(attempt).toBe(1);
     expect(error).not.toBeNull();
@@ -342,9 +342,8 @@ describe('doPolling', () => {
     expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
   });
 
-  it('should emergency break when abort returns true', async () => {
+  it('should abort', async () => {
     const fetcher = jest.fn().mockReturnValue('data');
-    const abort = jest.fn().mockReturnValue(true);
     const onComplete = jest.fn();
     const onBreak = jest.fn();
     const onNext = jest.fn();
@@ -353,9 +352,9 @@ describe('doPolling', () => {
     const onTooManyAttempts = jest.fn();
     const onFinish = jest.fn();
 
-    const { attempt, error, data } = await doPolling(fetcher, {
+    const { init, abort } = doPolling(fetcher, {
       until: () => false,
-      abort,
+      interval: 200,
       onComplete,
       onBreak,
       onNext,
@@ -365,10 +364,20 @@ describe('doPolling', () => {
       onTooManyAttempts,
     });
 
-    expect(attempt).toBe(1);
+    let attempt, error, data;
+    const promise = init().then(props => {
+      attempt = props.attempt;
+      error = props.error;
+      data = props.data;
+    });
+
+    abort();
+
+    await promise;
+
+    expect(attempt).toBe(0);
     expect(error).toBeNull();
-    expect(data).toBe('data');
-    expect(abort).toHaveBeenCalledTimes(1);
+    expect(data).toBeNull();
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(0);
     expect(onComplete).toHaveBeenCalledTimes(0);
@@ -379,26 +388,78 @@ describe('doPolling', () => {
     expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
   });
 
-  it('should be able to emergency break with error', async () => {
-    const abort = jest.fn().mockReturnValue(true);
+  it('should abort when fetcher returns error', async () => {
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
     const onComplete = jest.fn();
     const onFinish = jest.fn();
 
-    const { attempt, error, data } = await doPolling(fetcher, {
+    const { init, abort } = doPolling(fetcher, {
       until: () => false,
-      abort,
       onComplete,
       onFinish,
     });
 
-    expect(attempt).toBe(1);
-    expect(error).toEqual(new Error('error'));
+    let attempt, error, data;
+    const promise = init().then(props => {
+      attempt = props.attempt;
+      error = props.error;
+      data = props.data;
+    });
+
+    abort();
+
+    await promise;
+
+    expect(attempt).toBe(0);
+    expect(error).toBeNull();
     expect(data).toBeNull();
-    expect(abort).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(0);
     expect(onComplete).toHaveBeenCalledTimes(0);
+  });
+
+  it('should support multiple aborts', async () => {
+    const fetcher1 = jest.fn().mockReturnValue('data');
+    const fetcher2 = jest.fn().mockReturnValue(5);
+    const fetcher3 = jest.fn().mockReturnValue(5);
+    const onComplete1 = jest.fn();
+    const onComplete2 = jest.fn();
+    const onComplete3 = jest.fn();
+
+    const { init: init1, abort } = doPolling(fetcher1, {
+      until: () => false,
+      onComplete: onComplete1,
+      interval: 50,
+    });
+
+    let c2 = 1;
+    const { init: init2 } = doPolling(fetcher2, {
+      until: ({ data }) => data === c2++,
+      onComplete: onComplete2,
+      interval: 50,
+    });
+
+    let c3 = 1;
+    const { init: init3 } = doPolling(fetcher3, {
+      until: ({ data }) => data === c3++,
+      onComplete: onComplete3,
+      interval: 50,
+    });
+
+    init1();
+    const p2 = init2();
+    const p1 = init3();
+
+    abort();
+
+    await Promise.all([p1, p2]);
+
+    expect(fetcher1).toHaveBeenCalledTimes(1);
+    expect(fetcher2).toHaveBeenCalledTimes(5);
+    expect(fetcher3).toHaveBeenCalledTimes(5);
+    expect(onComplete1).toHaveBeenCalledTimes(0);
+    expect(onComplete2).toHaveBeenCalledTimes(1);
+    expect(onComplete3).toHaveBeenCalledTimes(1);
   });
 
   describe('options validation', () => {

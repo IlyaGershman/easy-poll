@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useState } from 'react';
 import { PollingSubscribers } from './PollingSubscribers';
 import { RegularPolling } from './RegularPolling';
 import { SubscrtionTrigger } from './SubscrtionTrigger';
-
-// @ts-ignore
-window.process = { env: 'example' };
 
 export default function App() {
   const [checked, setChecked] = useState(true);

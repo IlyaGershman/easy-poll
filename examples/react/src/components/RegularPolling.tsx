@@ -1,50 +1,74 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { doPolling } from '../../../../';
 import { fetchTodo } from '../service/todo';
 
 let count = 0;
 export const RegularPolling = () => {
-  const init = () =>
-    doPolling(() => fetchTodo(1), {
+  const pollingRef = useRef<ReturnType<typeof doPolling>>();
+  const shouldStop = useRef(false);
+
+  const poll = () => {
+    pollingRef.current?.abort();
+
+    pollingRef.current = doPolling(() => fetchTodo(1), {
       until: props => {
-        console.log(props);
+        console.log(`until`, props);
 
         return count++ === 5;
       },
       breakIf: props => {
-        console.log(props);
-        return false;
+        console.log(`breakIf`, props);
+        return shouldStop.current;
       },
       onStart: () => {
-        console.log('onStart');
+        console.log(`onStart`, 'onStart');
       },
       onFinish: props => {
-        console.log(props);
+        console.log(`onFinish`, props);
         count = 0;
       },
       onNext: props => {
-        console.log(props);
+        console.log(`onNext`, props);
       },
       onComplete: props => {
-        console.log(props);
+        console.log(`onComplete`, props);
       },
       onError: props => {
-        console.log(props);
+        console.log(`onError`, props);
       },
       onBreak(props) {
-        console.log(props);
+        console.log(`onBreak`, props);
+        shouldStop.current = false;
       },
       onIntervalError(props) {
-        console.log(props);
+        console.log(`onIntervalError`, props);
       },
       onTooManyAttempts(props) {
-        console.log(props);
+        console.log(`onTooManyAttempts`, props);
       },
       onTooManyErrors(props) {
-        console.log(props);
+        console.log(`onTooManyErrors`, props);
       },
-      interval: 5000,
+      interval: 1000,
     });
 
-  return <button onClick={init}>Start polling</button>;
+    pollingRef.current.init();
+  };
+
+  const abortPolling = () => {
+    pollingRef.current?.abort();
+    shouldStop.current = false;
+  };
+
+  const stopPolling = () => {
+    shouldStop.current = true;
+  };
+
+  return (
+    <>
+      <button onClick={poll}>Start new polling</button>
+      <button onClick={stopPolling}>Stop polling</button>
+      <button onClick={abortPolling}>Abort polling</button>
+    </>
+  );
 };

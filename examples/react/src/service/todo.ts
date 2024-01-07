@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { subscribePolling } from '../../../../';
 import { getRandomInt } from '../utils/getRandomInt';
+
+// @ts-ignore
+window.process = { env: 'example' };
 
 export const fetchTodo = (id: number) => {
   const url = `https://jsonplaceholder.typicode.com/todos/${id}`;
@@ -7,33 +11,22 @@ export const fetchTodo = (id: number) => {
   return fetch(url).then(response => response.json());
 };
 
-export const createPollSubscriptionWithTimeLimit = () => {
-  const stop = Date.now() + 10000;
-  return subscribePolling(() => fetchTodo(2), {
-    interval: () => getRandomInt(4000), // sneaky strategy
-    until: () => false,
-    breakIf: () => Date.now() > stop,
-  });
-};
-
 export const createPollSubscriptionWithStop = () => {
   const signal = { stop: false };
 
   const stop = () => (signal.stop = true);
 
-  const { subscribe, init } = subscribePolling(() => fetchTodo(2), {
-    interval: () => getRandomInt(4000), // sneaky strategy
+  const { subscribe, init, abort } = subscribePolling(() => fetchTodo(2), {
+    interval: () => getRandomInt(6000), // sneaky strategy
     until: () => false,
     breakIf: () => !!signal.stop,
+    breakIfError: () => !!signal.stop,
+    maxErrors: 42,
+    maxPolls: 42,
   });
 
-  const restart = () => {
-    signal.stop = false;
-    init();
-  };
-
-  return { subscribe, restart, stop };
+  return { subscribe, init, stop, abort };
 };
 
-export const todoPolling = createPollSubscriptionWithTimeLimit();
-export const todoPollingWithStop = createPollSubscriptionWithStop();
+export const todoPollingWithStop1 = createPollSubscriptionWithStop();
+export const todoPollingWithStop2 = createPollSubscriptionWithStop();

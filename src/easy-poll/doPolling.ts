@@ -1,4 +1,4 @@
-import { Options } from './core/createPolling';
+import { Fetcher, Options } from './core/createPolling';
 import { createPolling } from './core/createPolling';
 
 /**
@@ -41,8 +41,6 @@ import { createPolling } from './core/createPolling';
  *  onTooManyErrors: ({ retry, errorsCount, error }) => {},
  *  // onIntervalError will be called if the interval function throws an error
  *  onIntervalError({ data, error, attempt ,attemptsDuration, errorsCount, duration }) => {}
- *  // abort can be used to stop polling from the outside at once. No more callbacks will be called.
- *  abort: ({data, error, attempt }) => data === 'I need your clothes, your boots, and your motorcycle',
  * );
  * @param fetcher
  * @param options - maxErrors, maxPolls, interval, until, onStart, onComplete, onNext, onError, onTooManyAttempts, onTooManyErrors
@@ -50,6 +48,7 @@ import { createPolling } from './core/createPolling';
  * @throws if maxErrors is less than 0
  * @throws if interval is less than 0
  */
-export function doPolling<T>(fetcher: () => Promise<T>, options?: Options<T>) {
-  return createPolling<T>(fetcher, options).poll();
+export function doPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
+  const { init, abort } = createPolling<T>(fetcher, options);
+  return { init: () => init(), abort: () => abort() };
 }

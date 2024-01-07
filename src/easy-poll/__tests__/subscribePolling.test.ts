@@ -347,8 +347,7 @@ describe('subscribePolling', () => {
     expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
   });
 
-  it('should emergency break', async () => {
-    const abort = jest.fn().mockReturnValue(true);
+  it('should abort', async () => {
     const fetcher = jest.fn().mockReturnValue('data');
     const onComplete = jest.fn();
     const onBreak = jest.fn();
@@ -358,9 +357,9 @@ describe('subscribePolling', () => {
     const onTooManyAttempts = jest.fn();
     const onFinish = jest.fn();
 
-    const { subscribe, init } = subscribePolling(fetcher, {
+    const { subscribe, init, abort } = subscribePolling(fetcher, {
       until: () => false,
-      abort,
+      interval: 200,
     });
 
     subscribe(props => {
@@ -373,31 +372,38 @@ describe('subscribePolling', () => {
       if (props.event === EVENTS.ON_TOOMANYATTEMPTS) onTooManyAttempts(props);
     });
 
-    const { attempt, error, data } = await init();
+    let attempt, error, data;
+    const promise = init().then(props => {
+      attempt = props.attempt;
+      error = props.error;
+      data = props.data;
+    });
 
-    expect(attempt).toBe(1);
+    abort();
+
+    await promise;
+
+    expect(attempt).toBe(0);
     expect(error).toBeNull();
-    expect(data).toBe('data');
-    expect(abort).toHaveBeenCalledTimes(1);
+    expect(data).toBeNull();
     expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(onNext).toHaveBeenCalledTimes(0);
     expect(onFinish).toHaveBeenCalledTimes(0);
     expect(onComplete).toHaveBeenCalledTimes(0);
     expect(onBreak).toHaveBeenCalledTimes(0);
-    expect(onNext).toHaveBeenCalledTimes(0);
     expect(onError).toHaveBeenCalledTimes(0);
     expect(onTooManyErrors).toHaveBeenCalledTimes(0);
     expect(onTooManyAttempts).toHaveBeenCalledTimes(0);
   });
 
-  it('should be able to emergency break with error', async () => {
-    const abort = jest.fn().mockReturnValue(true);
+  it('should abort when fetcher returns error', async () => {
     const fetcher = jest.fn().mockRejectedValue(new Error('error'));
     const onComplete = jest.fn();
     const onFinish = jest.fn();
 
-    const { subscribe, init } = subscribePolling(fetcher, {
+    const { subscribe, init, abort } = subscribePolling(fetcher, {
       until: () => false,
-      abort,
+      interval: 200,
     });
 
     subscribe(props => {
@@ -405,15 +411,85 @@ describe('subscribePolling', () => {
       if (props.event === EVENTS.ON_FINISH) onFinish(props);
     });
 
-    const { attempt, error, data } = await init();
+    let attempt, error, data;
+    const promise = init().then(props => {
+      attempt = props.attempt;
+      error = props.error;
+      data = props.data;
+    });
 
-    expect(attempt).toBe(1);
-    expect(error).toEqual(new Error('error'));
+    abort();
+
+    await promise;
+
+    expect(attempt).toBe(0);
+    expect(error).toBeNull();
     expect(data).toBeNull();
-    expect(abort).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(0);
     expect(onComplete).toHaveBeenCalledTimes(0);
+  });
+
+  it('should support multiple aborts', async () => {
+    const fetcher1 = jest.fn().mockReturnValue('data');
+    const fetcher2 = jest.fn().mockReturnValue(5);
+    const fetcher3 = jest.fn().mockReturnValue(5);
+    const onComplete1 = jest.fn();
+    const onComplete2 = jest.fn();
+    const onComplete3 = jest.fn();
+
+    const {
+      init: init1,
+      subscribe: subscribe1,
+      abort: abort1,
+    } = subscribePolling(fetcher1, {
+      until: () => false,
+      interval: 50,
+    });
+
+    let c2 = 1;
+    const { init: init2, subscribe: subscribe2 } = subscribePolling(fetcher2, {
+      until: ({ data }) => data === c2++,
+      interval: 50,
+    });
+
+    let c3 = 1;
+    const {
+      init: init3,
+      subscribe: subscribe3,
+      abort: abort3,
+    } = subscribePolling(fetcher3, {
+      until: ({ data }) => data === c3++,
+      interval: 50,
+    });
+
+    subscribe1(props => {
+      if (props.event === EVENTS.ON_COMPLETE) onComplete1(props);
+    });
+
+    subscribe2(props => {
+      if (props.event === EVENTS.ON_COMPLETE) onComplete2(props);
+    });
+
+    subscribe3(props => {
+      if (props.event === EVENTS.ON_COMPLETE) onComplete3(props);
+    });
+
+    init1();
+    const p2 = init2();
+    const p1 = init3();
+
+    abort1();
+    abort3();
+
+    await Promise.all([p1, p2]);
+
+    expect(fetcher1).toHaveBeenCalledTimes(1);
+    expect(fetcher2).toHaveBeenCalledTimes(5);
+    expect(fetcher3).toHaveBeenCalledTimes(1);
+    expect(onComplete1).toHaveBeenCalledTimes(0);
+    expect(onComplete2).toHaveBeenCalledTimes(1);
+    expect(onComplete3).toHaveBeenCalledTimes(0);
   });
 
   describe('options validation', () => {

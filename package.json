@@ -12,7 +12,7 @@
     "coverage": "jest --coverage=true",
     "test": "jest",
     "test:coverage": "npm test -- --coverage",
-    "test:badges": "npm run test:coverage  && jest-coverage-badges --output ./badges",
+    "test:badges": "npm run test:coverage  && jest-coverage-badges --output ./.badges",
     "test:watch": "jest --watchAll",
     "build": "rollup -c",
     "dev": "rollup -c -w",

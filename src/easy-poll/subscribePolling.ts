@@ -1,5 +1,5 @@
 import { EVENTS } from './consts/events';
-import { PureOptions, Reactions } from './core/createPolling';
+import { Fetcher, PureOptions, Reactions } from './core/createPolling';
 import { createPolling } from './core/createPolling';
 import { createSubscribers } from '../utils/subscribers';
 import { ReactionsProps } from './core/createPolling';
@@ -53,7 +53,7 @@ import { validateOptions } from './core/validateOptions';
  * @throws if maxErrors is less than 0
  * @throws if interval is less than 0
  */
-export function subscribePolling<T>(fetcher: () => Promise<T>, pureOptions?: PureOptions<T>) {
+export function subscribePolling<T>(fetcher: Fetcher<T>, pureOptions?: PureOptions<T>) {
   const { notify, subscribe } = createSubscribers<{ event: keyof typeof EVENTS; props?: ReactionsProps<T> }>();
 
   const subscribtionOptions: Reactions<T> = {
@@ -91,7 +91,7 @@ export function subscribePolling<T>(fetcher: () => Promise<T>, pureOptions?: Pur
 
   const options = validateOptions({ ...pureOptions, ...subscribtionOptions });
 
-  const init = () => createPolling<T>(fetcher, options).poll();
+  const { init, abort } = createPolling<T>(fetcher, options);
 
-  return { subscribe, init };
+  return { subscribe, init: () => init(), abort: () => abort() };
 }
