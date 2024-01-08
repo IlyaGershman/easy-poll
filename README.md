@@ -5,6 +5,13 @@
 ⭐️ Easy to use, fully typed and well tested web/nodejs library for polling. Examples and sandboxes are included! ⭐️
 
 ## Contents
+- [Examples](#examples)
+- [Installation](#installation)
+- [doPolling](#dopolling)
+- [subscribePolling](#subscribepolling)
+- [Issues](#issues)
+- [Like this repo?](#like-this-repo)
+- [Licence](#licence)
 
 ## Examples
 
