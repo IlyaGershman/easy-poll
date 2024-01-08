@@ -1,5 +1,4 @@
 import { isTest } from '../../utils/envs';
-import { getPollId } from '../../utils/pollIds';
 import { abortablePromise } from '../../utils/promises';
 import { abortableWait, wait } from '../../utils/wait';
 import { createPollState } from './state';
@@ -59,11 +58,15 @@ export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
     onFinish = () => {},
   } = validateOptions(options);
 
-  const id = getPollId();
-  const eventId = `abortWaits:${id}`;
-
   let abortController = new AbortController();
   let pollPromise: Promise<State<T>> | null = null;
+
+  const promisifiedFetcher = async () => await fetcher();
+  const abortableFetch = () => abortablePromise(promisifiedFetcher(), abortController.signal);
+
+  const abort = () => {
+    abortController.abort();
+  };
 
   const state = createPollState<T>();
 
@@ -88,14 +91,8 @@ export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
   const getIsTooManyAttempts = () => state.get.attempt() >= maxPolls;
   const getIsTooManyErrors = () => state.get.errorsCount() >= maxErrors;
 
-  const abort = () => {
-    abortController.abort();
-  };
-
-  const promisifiedFetcher = async () => await fetcher();
-  const abortableFetch = () => abortablePromise(promisifiedFetcher(), abortController.signal);
-
   const _poll = async () => {
+    state.on.start();
     onStart();
 
     while (true) {

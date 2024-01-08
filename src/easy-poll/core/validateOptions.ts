@@ -29,10 +29,6 @@ export const validateOptions = <T>(o?: Options<T>) => {
     throw new Error('breakIf must be a function');
   }
 
-  if (o.abort !== undefined && typeof o.abort !== 'function') {
-    throw new Error('abort must be a function');
-  }
-
   if (o.onBreak !== undefined && typeof o.onBreak !== 'function') {
     throw new Error('onBreak must be a function');
   }

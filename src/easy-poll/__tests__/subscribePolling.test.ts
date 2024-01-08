@@ -545,13 +545,5 @@ describe('subscribePolling', () => {
       // @ts-ignore
       expect(() => subscribePolling(fetcher, { breakIfError })).toThrow('breakIfError must be a function');
     });
-
-    it('should throw an error when abort is not a function', async () => {
-      const fetcher = jest.fn();
-      const abort = 'not a function';
-
-      // @ts-ignore
-      expect(() => subscribePolling(fetcher, { abort })).toThrow('abort must be a function');
-    });
   });
 });

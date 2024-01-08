@@ -8,6 +8,7 @@ export function createPollState<T>() {
   let attemptsDuration: number[] = [];
   let error = null;
   let errorsCount = 0;
+  let initiatedAfter = 0;
 
   const get = {
     attempt: () => attempt,
@@ -20,6 +21,10 @@ export function createPollState<T>() {
   };
 
   const on = {
+    start: () => {
+      initiatedAfter = timer.duration();
+      timer.reset();
+    },
     newAttempt: () => {
       attempt += 1;
       attemptsDuration.push(timer.duration());
