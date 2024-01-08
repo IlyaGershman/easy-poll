@@ -2,7 +2,9 @@
 
 <img src="./.badges/badge-functions.svg" /><img src="./.badges/badge-branches.svg" /><img src="./.badges/badge-lines.svg" /><img src="./.badges/badge-statements.svg" />
 
-This is a simple, fully typed library that will allow you to create a polling mechanism and have full controll over it.
+⭐️ Easy to use, fully typed and well tested web/nodejs library for polling. Examples and sandboxes are included! ⭐️
+
+## Contents
 
 ## Examples
 

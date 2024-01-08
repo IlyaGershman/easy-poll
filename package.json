@@ -59,7 +59,7 @@
     },
     "./package.json": "./package.json"
   },
-  "description": "This is small lightweight library that should allow you to easily create a polling mechanism and have full controll over it.",
+  "description": "⭐️ Easy to use, fully typed and well tested web/nodejs library for polling. Examples with sandboxes included! ⭐️",
   "bugs": {
     "url": "https://github.com/IlyaGershman/easy-poll/issues"
   },
@@ -69,14 +69,15 @@
     "test": "tests"
   },
   "keywords": [
-    "long-polling",
+    "poll",
+    "poller",
     "polling",
-    "polling-mechanism",
-    "polling-library",
-    "polling-utility",
     "async",
-    "async-await",
-    "promise"
+    "await",
+    "promise",
+    "until",
+    "nodejs",
+    "web"
   ],
   "author": "ilyagershman"
 }
