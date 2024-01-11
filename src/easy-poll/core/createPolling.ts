@@ -64,8 +64,12 @@ export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
   const promisifiedFetcher = async () => await fetcher();
   const abortableFetch = () => abortablePromise(promisifiedFetcher(), abortController.signal);
 
-  const abort = () => {
-    abortController.abort();
+  const abort = async () => {
+    if (pollPromise) {
+      abortController.abort();
+    }
+
+    return pollPromise;
   };
 
   const state = createPollState<T>();

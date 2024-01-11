@@ -477,13 +477,21 @@ describe('subscribePolling', () => {
 
     init1();
     const p2 = init2();
-    const p1 = init3();
+    const p3 = init3();
 
     abort1();
-    abort3();
+    const res = await abort3();
 
-    await Promise.all([p1, p2]);
+    await Promise.all([p3, p2]);
 
+    expect(res).toStrictEqual({
+      attempt: 0,
+      attemptsDuration: [],
+      data: null,
+      duration: 0,
+      error: null,
+      errorsCount: 0,
+    });
     expect(fetcher1).toHaveBeenCalledTimes(1);
     expect(fetcher2).toHaveBeenCalledTimes(5);
     expect(fetcher3).toHaveBeenCalledTimes(1);
