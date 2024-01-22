@@ -32,7 +32,7 @@ export type PureOptions<T> = {
 };
 
 export type Options<T> = PureOptions<T> & Reactions<T>;
-export type Fetcher<T> = () => Promise<T>;
+export type Fetcher<T> = ({ signal }: { signal: AbortSignal }) => Promise<T>;
 
 export const POLLING_INTERVAL = 2000;
 export const MAX_ERRORS = 5;
@@ -61,7 +61,7 @@ export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
   let abortController = new AbortController();
   let pollPromise: Promise<State<T>> | null = null;
 
-  const promisifiedFetcher = async () => await fetcher();
+  const promisifiedFetcher = async () => await fetcher({ signal: abortController.signal });
   const abortableFetch = () => abortablePromise(promisifiedFetcher(), abortController.signal);
 
   const abort = async () => {

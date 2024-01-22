@@ -10,7 +10,7 @@ export const RegularPolling = () => {
   const poll = () => {
     pollingRef.current?.abort();
 
-    pollingRef.current = doPolling(() => fetchTodo(1), {
+    pollingRef.current = doPolling(({ signal }) => fetchTodo(1, signal), {
       until: props => {
         console.log(`until`, props);
 

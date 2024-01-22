@@ -5,10 +5,10 @@ import { getRandomInt } from '../utils/getRandomInt';
 // @ts-ignore
 window.process = { env: 'example' };
 
-export const fetchTodo = (id: number) => {
+export const fetchTodo = (id: number, signal?: AbortSignal) => {
   const url = `https://jsonplaceholder.typicode.com/todos/${id}`;
 
-  return fetch(url).then(response => response.json());
+  return fetch(url, { signal }).then(response => response.json());
 };
 
 export const createPollSubscriptionWithStop = () => {
@@ -16,7 +16,7 @@ export const createPollSubscriptionWithStop = () => {
 
   const stop = () => (signal.stop = true);
 
-  const { subscribe, init, abort } = subscribePolling(() => fetchTodo(2), {
+  const { subscribe, init, abort } = subscribePolling(({ signal }) => fetchTodo(2, signal), {
     interval: () => getRandomInt(6000), // sneaky strategy
     until: () => false,
     breakIf: () => !!signal.stop,

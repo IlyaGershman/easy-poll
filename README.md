@@ -215,6 +215,18 @@ setTimeout(abort, 4200);
 
 for the complete spec, you can refer to the `subscribePolling.test.ts` file. Or check the [examples](https://github.com/IlyaGershman/easy-poll/tree/main/examples)
 
+## more about `abort`
+
+when you call `abort` function, it will stop the polling and return the state of the polling at the moment of the abort. It will return the same result as `init` function.
+
+To make sure that you can cancel your current running `fetch` function, we pass `signal` parameter passed to the `fetch` function. Simply pass it to your fetch the request.
+
+```ts
+const { init, abort } = doPolling(({ signal }) => fetch(url, { signal })); // global fetch knows how to handle the signal and will abort the request.
+```
+
+You can learn more about AbortControllers and Signals [here](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) and [here](https://developer.mozilla.org/en-US/docs/Web/API/fetch#signal).
+
 ## Issues
 
 Please feel free to open any [issues](https://github.com/IlyaGershman/easy-poll/issues) and suggestions!
@@ -226,3 +238,7 @@ Please feel free to open any [issues](https://github.com/IlyaGershman/easy-poll/
 ## Licence
 
 [MIT](./LICENCE.md)
+
+```
+
+```
