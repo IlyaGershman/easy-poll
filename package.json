@@ -1,6 +1,6 @@
 {
   "name": "@ilyagershman/easy-poll",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "license": "MIT",
   "type": "module",
   "main": "dist/easy-poll.cjs",
