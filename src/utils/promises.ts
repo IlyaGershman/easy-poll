@@ -5,10 +5,17 @@ export const abortablePromise = <T>(promise: Promise<T>, signal: AbortSignal): P
       return;
     }
 
-    promise.then(resolve).catch(reject);
-
-    signal.addEventListener('abort', () => {
+    const abortRejection = () => {
       reject(signal.reason);
-    });
+    };
+
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(() => {
+        signal.removeEventListener('abort', abortRejection);
+      });
+
+    signal.addEventListener('abort', abortRejection);
   });
 };
