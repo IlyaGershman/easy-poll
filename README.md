@@ -34,9 +34,8 @@
 - [How to Abort Polling](#how-to-abort-polling)
   - [Using `abort` in `doPolling`](#using-abort-in-dopolling)
   - [Using `abort` in `subscribePolling`](#using-abort-in-subscribepolling)
-- [Passing Abort Signal to Fetch](#passing-abort-signal-to-fetch)
+  - [Passing Abort Signal to Fetch](#passing-abort-signal-to-fetch)
 - [Support and Feedback](#support-and-feedback)
-- [Show Your Support](#show-your-support)
 - [Real-World Examples](#real-world-examples)
   - [E-commerce Inventory Check](#e-commerce-inventory-check)
   - [Social Media Feed Update](#social-media-feed-update)
@@ -44,7 +43,6 @@
   - [Real-Time Stock Market Updates](#real-time-stock-market-updates)
   - [Tracking Parcel Delivery Status](#tracking-parcel-delivery-status)
   - [Automated Help Desk Ticket Updates](#automated-help-desk-ticket-updates)
-- [Real-World Examples Using `subscribePolling`](#real-world-examples-using-subscribepolling)
   - [Real-Time Chat Application](#real-time-chat-application)
   - [Live Sports Score Updates](#live-sports-score-updates)
   - [Monitoring Server Performance](#monitoring-server-performance)
@@ -94,7 +92,7 @@ The `easy-poll` library offers two primary functions to cater to your polling ne
 This function initiates a polling process, returning an object that includes `init` and `abort` methods:
 
 - `init`: Starts the polling sequence and returns a promise with the polling result. Re-invoking `init` will return the initial promise instead of creating a new polling instance.
-- `abort`: Stops the polling process and returns the result of the last poll, regardless of success or failure.
+- `abort`: Stops the polling process and returns the promise with the result of the last poll, regardless of success or failure.
 
 ### `subscribePolling`
 
@@ -102,7 +100,7 @@ This function is designed for scenarios where you want to monitor polling events
 
 - `subscribe`: Registers a callback to be invoked on each polling event, receiving data about the polling status.
 - `init`: Similar to `doPolling`, it begins the polling and returns a promise with the outcome.
-- `abort`: Ends the polling and provides the last known state of the polling process.
+- `abort`: Ends the polling and provides the promise with the last known state of the polling process.
 
 Both functions allow for detailed configuration to fine-tune the polling behavior, including retry limits, error handling, polling intervals, and custom event callbacks.
 
@@ -271,7 +269,7 @@ In the context of the `doPolling` function, `PollingErrorContext` and `PollingCo
 
 This context is passed to various callback functions to provide information about the current state of the polling process.
 
-```typescript
+```ts
 interface PollingContext {
     data: any; // The data returned from the polling function if successful
     attempt: number; // The current attempt count
@@ -291,7 +289,7 @@ interface PollingContext {
 
 This context is specifically used in error-related callbacks to provide details about the error condition within the polling process.
 
-```typescript
+```ts
 interface PollingErrorContext extends PollingContext {
     error: any; // The error object or message from the latest failed polling attempt
 }
@@ -372,7 +370,7 @@ To terminate an ongoing polling process in `easy-poll`, you can use the `abort` 
 
 When you initiate polling with `doPolling`, it returns an object containing the `abort` function among others. Here’s how you can use it:
 
-```typescript
+```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 const { init, abort } = await doPolling(yourFunctionToPoll);
@@ -388,7 +386,7 @@ abort();
 
 Similarly, when using `subscribePolling`, you also get an `abort` function that you can call to stop the polling:
 
-```typescript
+```ts
 import { subscribePolling } from '@ilyagershman/easy-poll';
 
 const { init, abort } = subscribePolling(yourFunctionToPoll);
@@ -404,13 +402,13 @@ abort();
 
 You can tie the `abort` function to user actions or application events. For example, you might want to abort the polling when the user navigates away from a page or when a certain condition is met:
 
-```javascript
+```ts
 addEventListener('unload', abort); // Abort polling when the user leaves the page
 ```
 
 Or, in a React component, you might use it in a `useEffect` cleanup function:
 
-```javascript
+```ts
 useEffect(() => {
   init(); // Start polling on component mount
   return () => {
@@ -423,11 +421,11 @@ Using the `abort` method provides you with the flexibility to manage the polling
 
 To enhance the control over network requests during polling, `easy-poll` allows you to pass an `abort` signal to the `fetch` function. This enables you to cancel ongoing network requests if the polling is aborted.
 
-### Passing Abort Signal to Fetch
+#### Passing Abort Signal to Fetch
 
 When you initialize the polling, you can pass a function that includes the `signal` parameter. This `signal` should then be passed to the `fetch` function to allow request cancellation:
 
-```typescript
+```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 const { init, abort } = await doPolling(({ signal }) => fetch('https://api.example.com/data', { signal }));
@@ -471,10 +469,6 @@ Join our community and stay up-to-date with the latest developments. Your insigh
 
 By engaging with the community, you can help improve the tool and find support for any challenges you encounter.
 
-## Show Your Support
-
-If you find `easy-poll` useful, show your support by starring our repository! Your star helps others discover and trust our library.
-
 ### Spread the Word
 
 Help us grow by sharing `easy-poll` within your network:
@@ -495,7 +489,7 @@ Thank you for considering to support and share `easy-poll`. Together, we can mak
 ### E-commerce Inventory Check
 An e-commerce application needs to regularly check the availability of a high-demand product. To prevent overwhelming the server, the app uses `doPolling` to check inventory status every 30 seconds, increasing the interval after each attempt until a successful response is received or a maximum of 10 attempts is reached.
 
-```typescript
+```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 async function checkProductAvailability(productId) {
@@ -519,7 +513,7 @@ init().then(({ data }) => {
 ### Social Media Feed Update
 A social media application wants to update the user's feed only when new content is available. Using `doPolling`, it can efficiently poll the server for updates without constant querying, reducing unnecessary network usage.
 
-```typescript
+```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 function fetchNewSocialMediaPosts(lastUpdate) {
@@ -541,7 +535,7 @@ init().then(({ data }) => {
 ### Monitoring System Status
 For a system monitoring tool, it’s crucial to continuously check the health of various services. `doPolling` can be used to implement this functionality, with the ability to break the polling process if a critical error is detected.
 
-```typescript
+```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 async function checkSystemHealth() {
@@ -559,12 +553,14 @@ init().then(({ data }) => {
         console.log('System is healthy!');
     }
 });
+
+addEventListener('unload', abort); // Abort polling when the user leaves the page
 ```
 
 ### Real-Time Stock Market Updates
 A financial application tracks real-time changes in stock prices. To provide timely updates without overloading the server, `doPolling` can be set to poll the server at a higher frequency during market hours and less frequently after hours.
 
-```typescript
+```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 function fetchStockPrice(stockSymbol) {
@@ -587,7 +583,7 @@ init().then(({ data }) => {
 ### Tracking Parcel Delivery Status
 For a logistics application, customers want to track their parcel delivery status in real-time. `doPolling` can help by polling the delivery service's API until the parcel status changes to "Delivered".
 
-```typescript
+```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 function checkParcelStatus(parcelId) {
@@ -608,7 +604,7 @@ init().then(() => {
 ### Automated Help Desk Ticket Updates
 In a customer service application, `doPolling` can be used to automatically update the status of help desk tickets, ensuring that service agents and customers have the most current information without manual refreshing.
 
-```typescript
+```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 function fetchTicketStatus(ticketId) {
@@ -628,13 +624,11 @@ init().then(({ data }) => {
 
 These examples demonstrate how `doPolling` can be adapted to various real-world scenarios, providing a robust solution for different polling requirements.
 
-## Real-World Examples Using `subscribePolling`
-
 ### Real-Time Chat Application
 In a chat application, `subscribePolling` can be used to fetch new messages periodically, updating the chat interface in real time as new messages arrive.
 
-```typescript
-import { subscribePolling } from '@ilyagershman/easy-poll';
+```ts
+import { subscribePolling, EVENTS } from '@ilyagershman/easy-poll';
 
 function fetchNewMessages(chatId) {
     return fetch(`https://api.chatapp.com/chats/${chatId}/messages`)
@@ -648,7 +642,7 @@ const { subscribe, init } = subscribePolling(() => fetchNewMessages('chat123'), 
 init();
 
 subscribe(({ event, props }) => {
-    if (event === 'onNext') {
+    if (event === EVENTS.ON_NEXT) {
         updateChatUI(props.data); // Update the UI with new messages
     }
 });
@@ -657,8 +651,8 @@ subscribe(({ event, props }) => {
 ### Live Sports Score Updates
 For a sports app, `subscribePolling` can be utilized to continuously check for and display updated scores of ongoing games, providing fans with real-time score updates.
 
-```typescript
-import { subscribePolling } from '@ilyagershman/easy-poll';
+```ts
+import { subscribePolling, EVENTS } from '@ilyagershman/easy-poll';
 
 function fetchCurrentGameScore(gameId) {
     return fetch(`https://api.sports.com/games/${gameId}/score`)
@@ -672,7 +666,7 @@ const { subscribe, init } = subscribePolling(() => fetchCurrentGameScore('game12
 init();
 
 subscribe(({ event, props }) => {
-    if (event === 'onNext') {
+    if (event === EVENTS.ON_NEXT) {
         displayScore(props.data); // Display the latest score on the screen
     }
 });
@@ -681,8 +675,8 @@ subscribe(({ event, props }) => {
 ### Monitoring Server Performance
 In an IT infrastructure management tool, `subscribePolling` can be employed to monitor server performance metrics and trigger alerts or actions based on specific thresholds.
 
-```typescript
-import { subscribePolling } from '@ilyagershman/easy-poll';
+```ts
+import { subscribePolling, EVENTS } from '@ilyagershman/easy-poll';
 
 function getServerPerformanceMetrics(serverId) {
     return fetch(`https://api.itmanagement.com/servers/${serverId}/performance`)
@@ -696,7 +690,7 @@ const { subscribe, init } = subscribePolling(() => getServerPerformanceMetrics('
 init();
 
 subscribe(({ event, props }) => {
-    if (event === 'onNext') {
+    if (event === EVENTS.ON_NEXT) {
         if (props.data.cpuUsage > 90) {
             alert('High CPU usage detected!');
         }
