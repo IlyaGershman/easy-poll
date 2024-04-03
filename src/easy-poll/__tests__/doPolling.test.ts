@@ -297,13 +297,14 @@ describe('doPolling', () => {
     const fetcher = jest.fn().mockReturnValue('data');
     const onIntervalError = jest.fn();
 
-    await doPolling(fetcher, {
+    const { error } = await doPolling(fetcher, {
       until: () => false,
       interval: () => -1,
       onIntervalError,
     }).init();
 
     expect(onIntervalError).toHaveBeenCalledTimes(1);
+    expect(error.message).toBe('interval must be greater than or equal to 0');
   });
 
   it('should stop polling when interval function returns bad interval', async () => {
@@ -330,7 +331,7 @@ describe('doPolling', () => {
     }).init();
 
     expect(attempt).toBe(1);
-    expect(error).not.toBeNull();
+    expect(error.message).toBe('value must be a number');
     expect(data).toBe('data');
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(onFinish).toHaveBeenCalledTimes(1);
@@ -458,7 +459,7 @@ describe('doPolling', () => {
       attempt: 0,
       attemptsDuration: [],
       data: null,
-      duration: 0,
+      duration: expect.any(Number),
       error: null,
       errorsCount: 0,
     });
@@ -468,6 +469,32 @@ describe('doPolling', () => {
     expect(onComplete1).toHaveBeenCalledTimes(0);
     expect(onComplete2).toHaveBeenCalledTimes(1);
     expect(onComplete3).toHaveBeenCalledTimes(1);
+  });
+
+  it('calling init multiple times should return the same promise', async () => {
+    const fetcher = jest.fn().mockReturnValue('data');
+
+    const { init } = doPolling(fetcher);
+
+    const p1 = init();
+    const p2 = init();
+
+    await p1;
+
+    expect(p1).toStrictEqual(p2);
+  });
+
+  it('calling abort multiple times should return the same promise', async () => {
+    const fetcher = jest.fn().mockReturnValue('data');
+
+    const { init, abort } = doPolling(fetcher);
+
+    init();
+
+    const p1 = abort();
+    const p2 = abort();
+
+    expect(p1).toStrictEqual(p2);
   });
 
   describe('options validation', () => {

@@ -1,34 +1,36 @@
-import { isTest } from '../../utils/envs';
-import { abortablePromise } from '../../utils/promises';
-import { abortableWait, wait } from '../../utils/wait';
-import { createPollState } from './state';
+import { createPollState, State, StateCatch, StateSuccess } from './state';
+import { AbortablesAbort, createAbortabes } from './abortables';
+import { createIntervalHandler } from './interval';
 import { validateOptions } from './validateOptions';
 
-export type SuccessProps<T> = ReturnType<ReturnType<typeof createPollState<T>>['get']['success']>;
-export type ErrorProps<T> = ReturnType<ReturnType<typeof createPollState<T>>['get']['catch']>;
-export type State<T> = ReturnType<ReturnType<typeof createPollState<T>>['get']['all']>;
-export type ReactionsProps<T> = SuccessProps<T> | ErrorProps<T> | State<T>;
+import { isTest } from '../../utils/envs';
+
+export type PollingSuccessContext<T> = StateSuccess<T>;
+export type PollingErrorContext<T> = StateCatch<T>;
+export type PollingContext<T> = State<T>;
+
+export type ReactionsProps<T> = PollingSuccessContext<T> | PollingErrorContext<T> | PollingContext<T>;
 
 export type Reactions<T> = {
   onStart?: () => void;
-  onFinish?: (props: State<T>) => void;
-  onComplete?: (props: SuccessProps<T>) => void;
-  onBreak?: (props: SuccessProps<T>) => void;
-  onNext?: (props: SuccessProps<T>) => void;
-  onTooManyAttempts?: (props: SuccessProps<T>) => void;
-  onError?: (props: ErrorProps<T>) => void;
-  onErrorBreak?: (props: ErrorProps<T>) => void;
-  onTooManyErrors?: (props: ErrorProps<T>) => void;
-  onIntervalError?: (props: State<T>) => void;
+  onFinish?: (props: PollingContext<T>) => void;
+  onComplete?: (props: PollingSuccessContext<T>) => void;
+  onBreak?: (props: PollingSuccessContext<T>) => void;
+  onNext?: (props: PollingSuccessContext<T>) => void;
+  onTooManyAttempts?: (props: PollingSuccessContext<T>) => void;
+  onError?: (props: PollingErrorContext<T>) => void;
+  onErrorBreak?: (props: PollingErrorContext<T>) => void;
+  onTooManyErrors?: (props: PollingErrorContext<T>) => void;
+  onIntervalError?: (props: PollingContext<T>) => void;
 };
 
 export type PureOptions<T> = {
   maxErrors?: number;
   maxPolls?: number;
-  interval?: ((props: State<T>) => number) | number;
-  until?: (props: SuccessProps<T>) => boolean;
-  breakIf?: (props: SuccessProps<T>) => boolean;
-  breakIfError?: (props: ErrorProps<T>) => boolean;
+  interval?: ((props: PollingContext<T>) => number) | number;
+  until?: (props: PollingSuccessContext<T>) => boolean;
+  breakIf?: (props: PollingSuccessContext<T>) => boolean;
+  breakIfError?: (props: PollingErrorContext<T>) => boolean;
 };
 
 export type Options<T> = PureOptions<T> & Reactions<T>;
@@ -36,11 +38,12 @@ export type Fetcher<T> = ({ signal }: { signal: AbortSignal }) => Promise<T>;
 
 export const POLLING_INTERVAL = 2000;
 export const MAX_ERRORS = 5;
+export const MAX_POLLS = Infinity;
 
 export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
   const {
     maxErrors = MAX_ERRORS,
-    maxPolls = isTest() ? 5 : Infinity,
+    maxPolls = isTest() ? 5 : MAX_POLLS,
     interval = isTest() ? 1 : POLLING_INTERVAL,
     until = () => true,
     breakIf = () => false,
@@ -58,54 +61,27 @@ export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
     onFinish = () => {},
   } = validateOptions(options);
 
-  let abortController = new AbortController();
-  let pollPromise: Promise<State<T>> | null = null;
-
-  const promisifiedFetcher = async () => await fetcher({ signal: abortController.signal });
-  const abortableFetch = () => abortablePromise(promisifiedFetcher(), abortController.signal);
-
-  const abort = async () => {
-    if (pollPromise) {
-      abortController.abort();
-    }
-
-    return pollPromise;
-  };
-
   const state = createPollState<T>();
+  const abortables = createAbortabes(fetcher);
 
-  const getInterval = () => {
-    if (typeof interval === 'number') return { isValid: true, newInterval: interval };
+  const intervalHandler = createIntervalHandler(interval);
 
-    const badInterval = { isValid: false, newInterval: 0 };
-    try {
-      const newInterval = interval(state.get.all());
-
-      if (typeof newInterval !== 'number' || newInterval < 0) {
-        throw new Error('interval must be greater than or equal to 0');
-      }
-
-      return { isValid: true, newInterval };
-    } catch (error) {
-      state.on.intervalCatch(error);
-      return badInterval;
-    }
+  const isTooMany = {
+    attempts: () => state.get.attempt() >= maxPolls,
+    errors: () => state.get.errorsCount() >= maxErrors,
   };
 
-  const getIsTooManyAttempts = () => state.get.attempt() >= maxPolls;
-  const getIsTooManyErrors = () => state.get.errorsCount() >= maxErrors;
-
-  const _poll = async () => {
+  const poll = async () => {
     state.on.start();
     onStart();
 
     while (true) {
-      if (abortController.signal.aborted) {
+      if (abortables.isAborted()) {
         return state.get.all();
       }
 
       try {
-        const data = await abortableFetch();
+        const data = await abortables.fetcher();
 
         state.on.newData(data);
 
@@ -119,20 +95,21 @@ export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
           break;
         }
 
-        if (getIsTooManyAttempts()) {
+        if (isTooMany.attempts()) {
           onTooManyAttempts(state.get.success());
           break;
         }
 
-        const { isValid, newInterval } = getInterval();
-        if (!isValid) {
+        const { error: intervalError, newInterval } = intervalHandler.get(state.get.all());
+        if (intervalError) {
+          state.on.intervalCatch(intervalError);
           onIntervalError(state.get.all());
           break;
         }
 
         onNext(state.get.success());
 
-        await abortableWait(newInterval, abortController.signal);
+        await abortables.wait(newInterval);
       } catch (e) {
         if (e.name === 'AbortError') {
           return state.get.all();
@@ -147,18 +124,19 @@ export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
           break;
         }
 
-        if (getIsTooManyErrors()) {
+        if (isTooMany.errors()) {
           onTooManyErrors(state.get.catch());
           break;
         }
 
-        const { isValid, newInterval } = getInterval();
-        if (!isValid) {
+        const { error: intervalError, newInterval } = intervalHandler.get(state.get.all());
+        if (intervalError) {
+          state.on.intervalCatch(intervalError);
           onIntervalError(state.get.all());
           break;
         }
 
-        await abortableWait(newInterval, abortController.signal);
+        await abortables.wait(newInterval);
       }
     }
 
@@ -167,12 +145,29 @@ export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
     return state.get.all();
   };
 
-  const poll = async () => {
+  const { init, abort } = createPollingHandlers<T>(poll, abortables.abort);
+
+  return { init, abort };
+}
+
+function createPollingHandlers<T>(poll: () => Promise<PollingContext<T>>, abort: AbortablesAbort) {
+  // this promise is going to be resolved only once and reused when handlers are called multiple times
+  let pollPromise: Promise<PollingContext<T>> | null = null;
+
+  const initPolling = async () => {
     if (pollPromise) return pollPromise;
 
-    pollPromise = _poll();
+    pollPromise = poll();
     return pollPromise;
   };
 
-  return { init: poll, abort };
+  const abortPolling = async () => {
+    if (pollPromise) {
+      abort();
+    }
+
+    return pollPromise;
+  };
+
+  return { init: initPolling, abort: abortPolling };
 }

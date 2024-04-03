@@ -47,3 +47,6 @@ export function createPollState<T>() {
 
   return { get, on };
 }
+export type State<T> = ReturnType<ReturnType<typeof createPollState<T>>['get']['all']>;
+export type StateSuccess<T> = ReturnType<ReturnType<typeof createPollState<T>>['get']['success']>;
+export type StateCatch<T> = ReturnType<ReturnType<typeof createPollState<T>>['get']['catch']>;
