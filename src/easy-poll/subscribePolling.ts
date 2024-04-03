@@ -1,4 +1,3 @@
-import { EVENTS } from './consts/events';
 import { Fetcher, PureOptions, Reactions } from './core/createPolling';
 import { createPolling } from './core/createPolling';
 import { createSubscribers } from '../utils/subscribers';
@@ -97,3 +96,16 @@ export function subscribePolling<T>(fetcher: Fetcher<T>, pureOptions?: PureOptio
 
   return { subscribe, init: () => init(), abort: () => abort() };
 }
+
+export const EVENTS = {
+  ON_START: 'ON_START',
+  ON_BREAK: 'ON_BREAK',
+  ON_FINISH: 'ON_FINISH',
+  ON_COMPLETE: 'ON_COMPLETE',
+  ON_NEXT: 'ON_NEXT',
+  ON_TOOMANYATTEMPTS: 'ON_TOOMANYATTEMPTS',
+  ON_ERROR: 'ON_ERROR',
+  ON_ERRORBREAK: 'ON_ERRORBREAK',
+  ON_TOOMANYERRORS: 'ON_TOOMANYERRORS',
+  ON_INTERVALERROR: 'ON_INTERVALERROR',
+} as const;

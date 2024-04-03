@@ -5,6 +5,7 @@
 🌟 Dive into the world of effortless, fully-typed, and rigorously tested polling with easy-poll! Including hands-on examples and interactive sandboxes to kickstart your development. 🌟
 
 ## Contents
+
 - [Welcome to easy-poll](#welcome-to-easy-poll)
 - [Quick Start with Examples](#quick-start-with-examples)
 - [Installation Guide](#installation-guide)
@@ -57,7 +58,6 @@ Jump straight into action with our live examples:
 - **For Node.js Users:** Check out how easy-poll works in a Node.js environment with this [node example sandbox](https://codesandbox.io/p/devbox/easy-poll-express-sandbox-gjhzt4?file=%2Findex.js%3A23%2C26). (Note: NodeJS 16+ required)
 
 - **More Examples:** Visit the [examples directory](https://github.com/IlyaGershman/easy-poll/tree/main/examples) on our GitHub repository for a variety of use cases. Each example includes a README for guidance on running it locally.
-
 
 ## Installation Guide
 
@@ -159,6 +159,7 @@ addEventListener('click', () => abort());
 ```
 
 ### Basic Usage
+
 As you can see, you have a lot of control over the polling process. But all the options props are optional, you can simply use it like this:
 
 ```ts
@@ -172,19 +173,23 @@ const { data, error } = await doPolling(fetchStuff, { until: ({ data }) => data 
 ```
 
 ### Options API
+
 Here's a detailed description of each property in the `doPolling` function's options object:
 
 #### `maxPolls`
+
 - **Type:** `number`
 - **Default:** `Infinity`
 - **Description:** The maximum number of times to attempt polling. When this count is reached, `onTooManyAttempts` is triggered.
 
 #### `maxErrors`
+
 - **Type:** `number`
 - **Default:** `5`
 - **Description:** The maximum number of errors allowed before stopping the polling. `onTooManyErrors` is called when this limit is reached.
 
 #### `interval`
+
 - **Type:** `number | ((context: PollingContext) => number)`
 - **Default:** `2000`
 - **Description:** The time interval (in milliseconds) between polling attempts. It can be a constant value or a function that returns a value, allowing dynamic adjustment based on previous attempts or conditions. With this you can create your own strategy for the use-case
@@ -209,55 +214,68 @@ interval: ({ error }) => (!!error ? 42000 : 4200), // let's introduce some coold
 ```
 
 #### `until`
+
 - **Type:** `((context: PollingContext) => boolean)`
 - **Default:** `() => true`
 - **Description:** A function that evaluates whether the polling should stop based on the fetched data. If the function returns `true`, polling stops.
 
 #### `onStart`
+
 - **Type:** `() => void`
 - **Description:** A callback function that is executed before the polling starts.
 
 #### `onNext`
-- **Type:** `((context: PollingContext) => void)`
+
+- **Type:** `((context: PollingSuccessContext) => void)`
 - **Description:** A callback function called after each successful polling attempt, except for the last one.
 
 #### `onComplete`
-- **Type:** `((context: PollingContext) => void)`
+
+- **Type:** `((context: PollingSuccessContext) => void)`
 - **Description:** A callback function executed when the polling successfully completes.
 
 #### `onFinish`
+
 - **Type:** `((context: PollingContext) => void)`
 - **Description:** A callback function called after the polling process finishes, regardless of the outcome.
 
 #### `onError`
+
 - **Type:** `((context: PollingErrorContext) => void)`
 - **Description:** A callback function triggered after each failed polling attempt.
 
 #### `onTooManyAttempts`
-- **Type:** `() => void`
+
+- **Type:** `(context: PollingSuccessContext) => void`
 - **Description:** A callback function called when the number of polling attempts exceeds `maxPolls`.
 
 #### `onTooManyErrors`
+
 - **Type:** `((context: PollingErrorContext) => void)`
 - **Description:** A callback function triggered when the number of errors reaches `maxErrors`.
 
 #### `onIntervalError`
-- **Type:** `((context: PollingIntervalErrorContext) => void)`
+
+- **Type:** `((context: PollingContext) => void)`
 - **Description:** A callback function called if an error occurs within the interval function.
 
 #### `breakIf`
+
 - **Type:** `((context: PollingContext) => boolean)`
 - **Description:** A condition that, if true, stops the polling process immediately. Useful for ending polling based on certain data conditions.
 
 #### `onBreak`
-- **Type:** `((context: PollingContext) => void)`
+
+- **Type:** `((context: PollingSuccessContext) => void)`
 - **Description:** A callback function executed when polling is stopped by `breakIf`.
 
 #### `breakIfError`
+
 - **Type:** `((context: PollingErrorContext) => boolean)`
 - **Description:** Similar to `breakIf`, but specifically for halting polling due to certain types of errors.
 
 #### `onBreakError`
+
 - **Type:** `((context: PollingErrorContext) => void)`
 - **Description:** A callback function called when `breakIfError` condition is met.
 
@@ -265,39 +283,61 @@ These properties provide a granular level of control over the polling process, a
 
 In the context of the `doPolling` function, `PollingErrorContext` and `PollingContext` provide specific details about the polling state and error conditions. Here’s how these contexts are structured and what information they provide:
 
+## Polling Contexts
+
+These contexts are passed to various callback functions to provide information about the current state of the polling process.
+
+These contexts are designed to give detailed insights into the polling process, allowing developers to implement sophisticated logic in their callbacks, handling success and failure cases effectively, and making informed decisions based on the current state of the polling operation.
+
 ### `PollingContext`
 
-This context is passed to various callback functions to provide information about the current state of the polling process.
+This context is used to provide general information about the polling process.
 
 ```ts
-interface PollingContext {
-    data: any; // The data returned from the polling function if successful
-    attempt: number; // The current attempt count
-    errorsCount: number; // The total number of errors encountered so far
-    attemptsDuration: number[]; // The total time spent in attempts so far
-    duration: number; // The total duration of the polling process, including intervals
-}
+type PollingContext<T> = {
+  data: T;
+  attempt: number;
+  attemptsDuration: number[];
+  errorsCount: number;
+  duration: number;
+  error: any;
+};
 ```
 
 - `data`: Contains the result of the latest successful polling request.
 - `attempt`: Indicates which polling attempt is currently being processed.
 - `errorsCount`: Counts how many errors have occurred during the polling process.
-- `attemptsDuration`: Measures the total time spent on making the polling attempts.
+- `attemptsDuration`: Tracks the time spent in each polling attempt.
 - `duration`: Represents the total time from the start of the polling process, including the time spent waiting between attempts.
+- `error`: Provides the error that occurred during the latest polling attempt. This extends `PollingContext`, meaning it includes all the fields from `PollingContext`, along with the error information.
+
+### `PollingSuccessContext`
+
+This context is specifically used in success-related callbacks to provide details about the successful polling attempt.
+
+```ts
+type PollingSuccessContext<T> = {
+  data: T;
+  attempt: number;
+  attemptsDuration: number[];
+  errorsCount: number;
+  duration: number;
+};
+```
 
 ### `PollingErrorContext`
 
 This context is specifically used in error-related callbacks to provide details about the error condition within the polling process.
 
 ```ts
-interface PollingErrorContext extends PollingContext {
-    error: any; // The error object or message from the latest failed polling attempt
-}
+type PollingSuccessContext<T> = {
+  error: any;
+  attempt: number;
+  attemptsDuration: number[];
+  errorsCount: number;
+  duration: number;
+};
 ```
-
-- `error`: Provides the error that occurred during the latest polling attempt. This extends `PollingContext`, meaning it includes all the fields from `PollingContext`, along with the error information.
-
-These contexts are designed to give detailed insights into the polling process, allowing developers to implement sophisticated logic in their callbacks, handling success and failure cases effectively, and making informed decisions based on the current state of the polling operation.
 
 ## Understanding `subscribePolling()`
 
@@ -310,7 +350,7 @@ Every time polling event is triggered, the callback passed to the `subscribe` fu
 ```ts
 {
   event: EVENTS; // the name of the event. Simply import { EVENTS } from '@ilyagershman/easy-poll'
-  props: PollingContext | PollingErrorContext
+  props: PollingContext | PollingErrorContext;
 }
 ```
 
@@ -434,7 +474,7 @@ const { init, abort } = await doPolling(({ signal }) => fetch('https://api.examp
 init();
 
 // The fetch request can now be aborted by calling the abort function
-addEventListener('click', abort);  // For example, abort on a button click
+addEventListener('click', abort); // For example, abort on a button click
 ```
 
 In this example, `signal` is an instance of `AbortSignal`, which is part of the `AbortController` Web API. By passing this `signal` to the `fetch` call, you link the abort control of the polling process directly to the network request.
@@ -483,218 +523,219 @@ Your endorsement not only motivates us to improve and expand `easy-poll` but als
 
 Thank you for considering to support and share `easy-poll`. Together, we can make it an indispensable tool for developers everywhere!
 
-
 ## Real-World Examples
 
 ### E-commerce Inventory Check
+
 An e-commerce application needs to regularly check the availability of a high-demand product. To prevent overwhelming the server, the app uses `doPolling` to check inventory status every 30 seconds, increasing the interval after each attempt until a successful response is received or a maximum of 10 attempts is reached.
 
 ```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 async function checkProductAvailability(productId) {
-    const response = await fetch(`https://api.store.com/products/${productId}/availability`);
-    return response.json();
+  const response = await fetch(`https://api.store.com/products/${productId}/availability`);
+  return response.json();
 }
 
 const { init, abort } = doPolling(() => checkProductAvailability('12345'), {
-    maxPolls: 10,
-    interval: (attempt) => 30000 + (attempt * 5000), // Increase interval by 5 seconds after each attempt
-    until: ({ data }) => data.isAvailable,
+  maxPolls: 10,
+  interval: attempt => 30000 + attempt * 5000, // Increase interval by 5 seconds after each attempt
+  until: ({ data }) => data.isAvailable,
 });
 
 init().then(({ data }) => {
-    if (data.isAvailable) {
-        console.log('Product is available!');
-    }
+  if (data.isAvailable) {
+    console.log('Product is available!');
+  }
 });
 ```
 
 ### Social Media Feed Update
+
 A social media application wants to update the user's feed only when new content is available. Using `doPolling`, it can efficiently poll the server for updates without constant querying, reducing unnecessary network usage.
 
 ```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 function fetchNewSocialMediaPosts(lastUpdate) {
-    return fetch(`https://api.socialmedia.com/posts?since=${lastUpdate}`)
-        .then(res => res.json());
+  return fetch(`https://api.socialmedia.com/posts?since=${lastUpdate}`).then(res => res.json());
 }
 
 const { init } = doPolling(() => fetchNewSocialMediaPosts(lastFetchTimestamp), {
-    interval: 60000, // Check every minute
-    until: ({ data }) => data.length > 0,
+  interval: 60000, // Check every minute
+  until: ({ data }) => data.length > 0,
 });
 
 init().then(({ data }) => {
-    console.log('New posts:', data);
-    lastFetchTimestamp = new Date().toISOString(); // Update last fetch timestamp
+  console.log('New posts:', data);
+  lastFetchTimestamp = new Date().toISOString(); // Update last fetch timestamp
 });
 ```
 
 ### Monitoring System Status
+
 For a system monitoring tool, it’s crucial to continuously check the health of various services. `doPolling` can be used to implement this functionality, with the ability to break the polling process if a critical error is detected.
 
 ```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 async function checkSystemHealth() {
-    const response = await fetch('https://api.system.com/health');
-    return response.json();
+  const response = await fetch('https://api.system.com/health');
+  return response.json();
 }
 
 const { init, abort } = doPolling(checkSystemHealth, {
-    interval: 5000, // Poll every 5 seconds
-    breakIfError: ({ error }) => error.statusCode === 500, // Stop polling on critical errors
+  interval: 5000, // Poll every 5 seconds
+  breakIfError: ({ error }) => error.statusCode === 500, // Stop polling on critical errors
 });
 
 init().then(({ data }) => {
-    if (data.status === 'OK') {
-        console.log('System is healthy!');
-    }
+  if (data.status === 'OK') {
+    console.log('System is healthy!');
+  }
 });
 
 addEventListener('unload', abort); // Abort polling when the user leaves the page
 ```
 
 ### Real-Time Stock Market Updates
+
 A financial application tracks real-time changes in stock prices. To provide timely updates without overloading the server, `doPolling` can be set to poll the server at a higher frequency during market hours and less frequently after hours.
 
 ```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 function fetchStockPrice(stockSymbol) {
-    return fetch(`https://api.finance.com/stocks/${stockSymbol}`)
-        .then(res => res.json());
+  return fetch(`https://api.finance.com/stocks/${stockSymbol}`).then(res => res.json());
 }
 
 const { init } = doPolling(() => fetchStockPrice('AAPL'), {
-    interval: ({ attempt, errorsCount }) => {
-        const isMarketHours = new Date().getHours() >= 9 && new Date().getHours() < 16;
-        return isMarketHours ? 1000 : 60000; // 1 second during market hours, 1 minute otherwise
-    },
+  interval: ({ attempt, errorsCount }) => {
+    const isMarketHours = new Date().getHours() >= 9 && new Date().getHours() < 16;
+    return isMarketHours ? 1000 : 60000; // 1 second during market hours, 1 minute otherwise
+  },
 });
 
 init().then(({ data }) => {
-    console.log('Latest stock price:', data.price);
+  console.log('Latest stock price:', data.price);
 });
 ```
 
 ### Tracking Parcel Delivery Status
+
 For a logistics application, customers want to track their parcel delivery status in real-time. `doPolling` can help by polling the delivery service's API until the parcel status changes to "Delivered".
 
 ```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 function checkParcelStatus(parcelId) {
-    return fetch(`https://api.logistics.com/parcels/${parcelId}/status`)
-        .then(res => res.json());
+  return fetch(`https://api.logistics.com/parcels/${parcelId}/status`).then(res => res.json());
 }
 
 const { init } = doPolling(() => checkParcelStatus('123456789'), {
-    until: ({ data }) => data.status === 'Delivered',
-    interval: 30000, // Check every 30 seconds
+  until: ({ data }) => data.status === 'Delivered',
+  interval: 30000, // Check every 30 seconds
 });
 
 init().then(() => {
-    console.log('Parcel has been delivered!');
+  console.log('Parcel has been delivered!');
 });
 ```
 
 ### Automated Help Desk Ticket Updates
+
 In a customer service application, `doPolling` can be used to automatically update the status of help desk tickets, ensuring that service agents and customers have the most current information without manual refreshing.
 
 ```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
 function fetchTicketStatus(ticketId) {
-    return fetch(`https://api.helpdesk.com/tickets/${ticketId}/status`)
-        .then(res => res.json());
+  return fetch(`https://api.helpdesk.com/tickets/${ticketId}/status`).then(res => res.json());
 }
 
 const { init, abort } = doPolling(() => fetchTicketStatus('ticket-1234'), {
-    interval: 10000, // Poll every 10 seconds
-    until: ({ data }) => data.status === 'Resolved',
+  interval: 10000, // Poll every 10 seconds
+  until: ({ data }) => data.status === 'Resolved',
 });
 
 init().then(({ data }) => {
-    console.log(`Ticket status: ${data.status}`);
+  console.log(`Ticket status: ${data.status}`);
 });
 ```
 
 These examples demonstrate how `doPolling` can be adapted to various real-world scenarios, providing a robust solution for different polling requirements.
 
 ### Real-Time Chat Application
+
 In a chat application, `subscribePolling` can be used to fetch new messages periodically, updating the chat interface in real time as new messages arrive.
 
 ```ts
 import { subscribePolling, EVENTS } from '@ilyagershman/easy-poll';
 
 function fetchNewMessages(chatId) {
-    return fetch(`https://api.chatapp.com/chats/${chatId}/messages`)
-        .then(res => res.json());
+  return fetch(`https://api.chatapp.com/chats/${chatId}/messages`).then(res => res.json());
 }
 
 const { subscribe, init } = subscribePolling(() => fetchNewMessages('chat123'), {
-    interval: 5000, // Check for new messages every 5 seconds
+  interval: 5000, // Check for new messages every 5 seconds
 });
 
 init();
 
 subscribe(({ event, props }) => {
-    if (event === EVENTS.ON_NEXT) {
-        updateChatUI(props.data); // Update the UI with new messages
-    }
+  if (event === EVENTS.ON_NEXT) {
+    updateChatUI(props.data); // Update the UI with new messages
+  }
 });
 ```
 
 ### Live Sports Score Updates
+
 For a sports app, `subscribePolling` can be utilized to continuously check for and display updated scores of ongoing games, providing fans with real-time score updates.
 
 ```ts
 import { subscribePolling, EVENTS } from '@ilyagershman/easy-poll';
 
 function fetchCurrentGameScore(gameId) {
-    return fetch(`https://api.sports.com/games/${gameId}/score`)
-        .then(res => res.json());
+  return fetch(`https://api.sports.com/games/${gameId}/score`).then(res => res.json());
 }
 
 const { subscribe, init } = subscribePolling(() => fetchCurrentGameScore('game123'), {
-    interval: 30000, // Update every 30 seconds
+  interval: 30000, // Update every 30 seconds
 });
 
 init();
 
 subscribe(({ event, props }) => {
-    if (event === EVENTS.ON_NEXT) {
-        displayScore(props.data); // Display the latest score on the screen
-    }
+  if (event === EVENTS.ON_NEXT) {
+    displayScore(props.data); // Display the latest score on the screen
+  }
 });
 ```
 
 ### Monitoring Server Performance
+
 In an IT infrastructure management tool, `subscribePolling` can be employed to monitor server performance metrics and trigger alerts or actions based on specific thresholds.
 
 ```ts
 import { subscribePolling, EVENTS } from '@ilyagershman/easy-poll';
 
 function getServerPerformanceMetrics(serverId) {
-    return fetch(`https://api.itmanagement.com/servers/${serverId}/performance`)
-        .then(res => res.json());
+  return fetch(`https://api.itmanagement.com/servers/${serverId}/performance`).then(res => res.json());
 }
 
 const { subscribe, init } = subscribePolling(() => getServerPerformanceMetrics('server1'), {
-    interval: 10000, // Poll every 10 seconds
+  interval: 10000, // Poll every 10 seconds
 });
 
 init();
 
 subscribe(({ event, props }) => {
-    if (event === EVENTS.ON_NEXT) {
-        if (props.data.cpuUsage > 90) {
-            alert('High CPU usage detected!');
-        }
+  if (event === EVENTS.ON_NEXT) {
+    if (props.data.cpuUsage > 90) {
+      alert('High CPU usage detected!');
     }
+  }
 });
 ```
 
@@ -703,4 +744,3 @@ These examples demonstrate how `subscribePolling` facilitates real-time data upd
 ## Licence
 
 [MIT](./LICENCE.md)
-
