@@ -52,11 +52,15 @@ export const RegularPolling = () => {
       interval: 1000,
     });
 
-    pollingRef.current.init();
+    pollingRef.current.init().then(props => {
+      console.log(`init`, props);
+    });
   };
 
   const abortPolling = () => {
-    pollingRef.current?.abort();
+    pollingRef.current?.abort().then(props => {
+      console.log(`abort`, props);
+    });
     shouldStop.current = false;
   };
 
