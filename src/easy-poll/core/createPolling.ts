@@ -2,8 +2,7 @@ import { createPollState, State, StateCatch, StateSuccess } from './state';
 import { AbortablesAbort, createAbortabes } from './abortables';
 import { createIntervalHandler } from './interval';
 import { validateOptions } from './validateOptions';
-
-import { isTest } from '../../utils/envs';
+import { MAX_ERRORS, MAX_POLLS, POLLING_INTERVAL } from './consts';
 
 export type PollingSuccessContext<T> = StateSuccess<T>;
 export type PollingErrorContext<T> = StateCatch<T>;
@@ -36,15 +35,11 @@ export type PureOptions<T> = {
 export type Options<T> = PureOptions<T> & Reactions<T>;
 export type Fetcher<T> = ({ signal }: { signal: AbortSignal }) => Promise<T>;
 
-export const POLLING_INTERVAL = 2000;
-export const MAX_ERRORS = 5;
-export const MAX_POLLS = Infinity;
-
 export function createPolling<T>(fetcher: Fetcher<T>, options?: Options<T>) {
   const {
     maxErrors = MAX_ERRORS,
-    maxPolls = isTest() ? 5 : MAX_POLLS,
-    interval = isTest() ? 1 : POLLING_INTERVAL,
+    maxPolls = MAX_POLLS,
+    interval = POLLING_INTERVAL,
     until = () => true,
     breakIf = () => false,
     breakIfError = () => false,

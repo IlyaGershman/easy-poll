@@ -1,5 +1,11 @@
 import { doPolling } from '../doPolling';
 
+jest.mock('../core/consts', () => ({
+  ...jest.requireActual('../core/consts'),
+  POLLING_INTERVAL: 1,
+  MAX_POLLS: 5,
+}));
+
 describe('doPolling', () => {
   it('should call fetcher', async () => {
     const fetcher = jest.fn();
@@ -304,7 +310,7 @@ describe('doPolling', () => {
     }).init();
 
     expect(onIntervalError).toHaveBeenCalledTimes(1);
-    expect(error.message).toBe('interval must be greater than or equal to 0');
+    expect(error.message).toBe('value must be greater than or equal to 0');
   });
 
   it('should stop polling when interval function returns bad interval', async () => {

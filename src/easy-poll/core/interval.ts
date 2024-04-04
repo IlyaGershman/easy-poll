@@ -1,4 +1,4 @@
-import { assertNumber } from '../../utils/asserts';
+import { assertIsPositiveNumber, assertNumber } from '../../utils/asserts';
 import { State } from './state';
 
 type IntervalWithError = { error: any; newInterval: null };
@@ -29,21 +29,11 @@ const createNumberIntervalHandler = (interval: number) => {
 };
 
 const createFunctionIntervalHandler = <T>(interval: IntervalFunction<T>) => {
-  const getInterval = (state: State<T>) => {
-    const newInterval = interval(state);
-
-    assertNumber(newInterval);
-
-    if (newInterval < 0) {
-      throw new Error('interval must be greater than or equal to 0');
-    }
-
-    return newInterval;
-  };
-
   const get = (state: State<T>) => {
     try {
-      const newInterval = getInterval(state);
+      const newInterval = interval(state);
+      assertIsPositiveNumber(newInterval);
+
       return { error: null, newInterval };
     } catch (error) {
       return { error, newInterval: null };
