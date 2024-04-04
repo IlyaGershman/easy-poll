@@ -1,6 +1,12 @@
 import { EVENTS } from '../subscribePolling';
 import { subscribePolling } from '../subscribePolling';
 
+jest.mock('../core/consts', () => ({
+  ...jest.requireActual('../core/consts'),
+  POLLING_INTERVAL: 1,
+  MAX_POLLS: 5,
+}));
+
 describe('subscribePolling', () => {
   it('should call fetcher', async () => {
     const fetcher = jest.fn();
@@ -323,10 +329,10 @@ describe('subscribePolling', () => {
         data: 'data',
         attemptsDuration: [expect.any(Number)],
         duration: expect.any(Number),
-        error: new Error('interval must be greater than or equal to 0'),
+        error: new Error('value must be greater than or equal to 0'),
       },
     });
-    expect(error.message).toBe('interval must be greater than or equal to 0');
+    expect(error.message).toBe('value must be greater than or equal to 0');
   });
 
   it('should stop polling when interval function returns bad interval', async () => {
