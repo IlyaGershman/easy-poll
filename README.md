@@ -1,5 +1,7 @@
 # Welcome to easy-poll
 
+<img src='./easy-poll.png' width="670" />
+
 <img src="./.badges/badge-functions.svg" /><img src="./.badges/badge-branches.svg" /><img src="./.badges/badge-lines.svg" /><img src="./.badges/badge-statements.svg" />
 
 🌟 Dive into the world of effortless, fully-typed, and rigorously tested polling with easy-poll! Including hands-on examples and interactive sandboxes to kickstart your development. 🌟
