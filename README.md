@@ -525,6 +525,8 @@ Thank you for considering to support and share `easy-poll`. Together, we can mak
 
 ## Real-World Examples
 
+Let’s explore some real-world scenarios where `easy-poll` can be used to enhance the functionality of your applications. These examples demonstrate how polling can be applied to various use cases, such as e-commerce inventory checks, social media feed updates, system monitoring, and more.
+
 ### E-commerce Inventory Check
 
 An e-commerce application needs to regularly check the availability of a high-demand product. To prevent overwhelming the server, the app uses `doPolling` to check inventory status every 30 seconds, increasing the interval after each attempt until a successful response is received or a maximum of 10 attempts is reached.
@@ -543,11 +545,7 @@ const { init, abort } = doPolling(() => checkProductAvailability('12345'), {
   until: ({ data }) => data.isAvailable,
 });
 
-init().then(({ data }) => {
-  if (data.isAvailable) {
-    console.log('Product is available!');
-  }
-});
+init();
 ```
 
 ### Social Media Feed Update
@@ -579,21 +577,25 @@ For a system monitoring tool, it’s crucial to continuously check the health of
 ```ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
-async function checkSystemHealth() {
-  const response = await fetch('https://api.system.com/health');
+async function checkSystemHealth(signal) {
+  const response = await fetch('https://api.system.com/health', { signal });
   return response.json();
 }
 
-const { init, abort } = doPolling(checkSystemHealth, {
+const { init, abort } = doPolling(({ signal }) => checkSystemHealth(signal), {
   interval: 5000, // Poll every 5 seconds
   breakIfError: ({ error }) => error.statusCode === 500, // Stop polling on critical errors
+  onNext: ({ data }) => {
+    if (data.status === 'OK') {
+      console.log('System is healthy!');
+      return;
+    }
+
+    console.error('System is down:', data.error);
+  },
 });
 
-init().then(({ data }) => {
-  if (data.status === 'OK') {
-    console.log('System is healthy!');
-  }
-});
+init();
 
 addEventListener('unload', abort); // Abort polling when the user leaves the page
 ```
@@ -603,22 +605,46 @@ addEventListener('unload', abort); // Abort polling when the user leaves the pag
 A financial application tracks real-time changes in stock prices. To provide timely updates without overloading the server, `doPolling` can be set to poll the server at a higher frequency during market hours and less frequently after hours.
 
 ```ts
+/// reportAggregationService.ts
 import { doPolling } from '@ilyagershman/easy-poll';
 
-function fetchStockPrice(stockSymbol) {
-  return fetch(`https://api.finance.com/stocks/${stockSymbol}`).then(res => res.json());
+function fetchStockPrice(stockSymbol, signal) {
+  return fetch(`https://api.finance.com/stocks/${stockSymbol}`, { signal }).then(res => res.json());
 }
 
-const { init } = doPolling(() => fetchStockPrice('AAPL'), {
-  interval: ({ attempt, errorsCount }) => {
-    const isMarketHours = new Date().getHours() >= 9 && new Date().getHours() < 16;
-    return isMarketHours ? 1000 : 60000; // 1 second during market hours, 1 minute otherwise
-  },
-});
+function sendReportToServer(report) {
+  fetch('https://api.finance.com/reports', {
+    method: 'POST',
+    body: JSON.stringify(report),
+  });
+}
 
-init().then(({ data }) => {
-  console.log('Latest stock price:', data.price);
-});
+export const startReportAggregation = () => {
+  const report = {
+    AAPL: [{ price: 0, time: 0 }],
+  };
+
+  const { init, abort } = doPolling(({ signal }) => fetchStockPrice('AAPL', signal), {
+    interval: ({ attempt, errorsCount }) => {
+      const isMarketHours = new Date().getHours() >= 9 && new Date().getHours() < 16;
+      return isMarketHours ? 1000 : 60000; // 1 second during market hours, 1 minute otherwise
+    },
+    onNext: ({ data, duration }) => {
+      console.log(`Latest stock price of AAPL: $${data.price}`);
+      report.AAPL.push({ price: data.price, time: duration });
+    },
+  });
+
+  init().then(() => {
+    console.log('Stock market closed. Final report:', report);
+    sendReportToServer(report);
+  });
+
+  setTimeout(() => abort(), 60 * 24 * 60); // Stop polling after 24 hours
+};
+
+/// main.ts
+import { startReportAggregation } from './reportAggregationService';
 ```
 
 ### Tracking Parcel Delivery Status
@@ -656,10 +682,11 @@ function fetchTicketStatus(ticketId) {
 const { init, abort } = doPolling(() => fetchTicketStatus('ticket-1234'), {
   interval: 10000, // Poll every 10 seconds
   until: ({ data }) => data.status === 'Resolved',
-});
-
-init().then(({ data }) => {
-  console.log(`Ticket status: ${data.status}`);
+  onComplete: ({ duration, attempts }) => {
+    console.log(
+      `Ticket was resolved after ${Number(duration / 1000 / 60).toFixed(1)} minutes with ${attempts} attmepts`
+    );
+  },
 });
 ```
 
@@ -670,21 +697,48 @@ These examples demonstrate how `doPolling` can be adapted to various real-world 
 In a chat application, `subscribePolling` can be used to fetch new messages periodically, updating the chat interface in real time as new messages arrive.
 
 ```ts
+/// messageService.ts
 import { subscribePolling, EVENTS } from '@ilyagershman/easy-poll';
 
 function fetchNewMessages(chatId) {
   return fetch(`https://api.chatapp.com/chats/${chatId}/messages`).then(res => res.json());
 }
 
-const { subscribe, init } = subscribePolling(() => fetchNewMessages('chat123'), {
-  interval: 5000, // Check for new messages every 5 seconds
+export const { subscribe, init, abort } = subscribePolling(() => fetchNewMessages('chat123'), {
+  interval: ({ error }) => (error ? 42000 : 4200), // Increase interval after an error
+  breakIfError: ({ error }) => error.code === 404, // Stop polling on 404 errors
+  onBreakError: ({ error }) => console.error('Chat not found:', error),
 });
 
-init();
+/// useMessages.ts
+import { init as collectMessages, abort } from './messageService';
 
+useEffect(() => {
+  return () => {
+    abort(); // Stop polling when the component unmounts
+  };
+}, []);
+
+return { collectMessages: init };
+
+/// chatUI.ts
 subscribe(({ event, props }) => {
   if (event === EVENTS.ON_NEXT) {
     updateChatUI(props.data); // Update the UI with new messages
+  }
+});
+
+/// chatStats.ts
+subscribe(({ event, props }) => {
+  if (event === EVENTS.ON_NEXT) {
+    updateTotalMessagesUI(props.data); // Update the UI with new messages
+  }
+});
+
+/// chatNotifications.ts
+subscribe(({ event, props }) => {
+  if (event === EVENTS.ON_NEXT) {
+    updateUnreadMessagesUI(props.data); // Update the UI with new messages
   }
 });
 ```
