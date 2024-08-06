@@ -344,7 +344,7 @@ type PollingSuccessContext<T> = {
 ## Understanding `subscribePolling()`
 
 subscribePolling is designed for situations where you need to respond to events during the polling process. It allows you to subscribe to polling events and handle them accordingly.
-When called, the function returns an object with two functions: `subscribe`, `init` and `abort`.
+When called, the function returns an object with three functions: `subscribe`, `init` and `abort`.
 
 `init` is a function that starts the polling. It returns a promise with the result of the polling (same as `doPolling`).
 Every time polling event is triggered, the callback passed to the `subscribe` function will be called. The callback function will receive an object with the following properties:
